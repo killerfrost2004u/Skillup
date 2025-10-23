@@ -1,85 +1,34 @@
-=========================
-  --انشاء قاعدة بيانات
-=========================
-CREATE DATABASE elearning_platform
-- ========================================
--- جدول المستخدمين (Users)
--- ========================================
-CREATE TABLE Users (
-    user_id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(100) NOT NULL,
-    email NVARCHAR(150) UNIQUE NOT NULL,
-    password NVARCHAR(100) NOT NULL,
-    role NVARCHAR(50) CHECK (role IN ('student', 'instructor', 'admin')) NOT NULL
-);
-GO
+INSERT INTO Users (name, email, password, role) VALUES
+('Ahmed Ali', 'ahmed@example.com', '12345', 'instructor'),
+('Sara Mohamed', 'sara@example.com', '12345', 'student'),
+('Omar Khaled', 'omar@example.com', '12345', 'student'),
+('Mariam Hassan', 'mariam@example.com', '12345', 'instructor'),
+('Admin', 'admin@elearn.com', '12345', 'admin');
 
--- ========================================
--- جدول الكورسات (Courses)
--- ========================================
-CREATE TABLE Courses (
-    course_id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(200) NOT NULL,
-    description NVARCHAR(MAX),
-    instructor_id INT NOT NULL,
-    price DECIMAL(10,2) DEFAULT 0,
-    FOREIGN KEY (instructor_id) REFERENCES Users(user_id)
-);
-GO
+INSERT INTO Courses (title, description, instructor_id, price) VALUES
+('Python Basics', N'كورس لتعلم أساسيات بايثون', 1, 199.00),
+('Web Development', N'مقدمة لتصميم مواقع الويب', 4, 249.00),
+('Data Analysis Intro', N'مقدمة في تحليل البيانات', 1, 299.00);
 
--- ========================================
--- جدول الدروس (Lessons)
--- ========================================
-CREATE TABLE Lessons (
-    lesson_id INT IDENTITY(1,1) PRIMARY KEY,
-    course_id INT NOT NULL,
-    title NVARCHAR(200) NOT NULL,
-    content NVARCHAR(MAX),
-    position INT,
-    FOREIGN KEY (course_id) REFERENCES Courses(course_id)
-);
-GO
+INSERT INTO Lessons (course_id, title, content, position) VALUES
+(1, N'مقدمة عن بايثون', N'درس تعريفي بلغة بايثون', 1),
+(1, N'أنواع البيانات', N'شرح أنواع البيانات في بايثون', 2),
+(2, N'HTML Basics', N'مقدمة عن HTML', 1),
+(2, N'CSS Intro', N'تنسيق المواقع بـ CSS', 2),
+(3, N'ما هو تحليل البيانات', N'شرح المفهوم الأساسي لتحليل البيانات', 1);
 
--- ========================================
--- جدول الاشتراكات (Enrollments)
--- ========================================
-CREATE TABLE Enrollments (
-    enrollment_id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT NOT NULL,
-    course_id INT NOT NULL,
-    date_enrolled DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (course_id) REFERENCES Courses(course_id)
-);
-GO
+INSERT INTO Enrollments (user_id, course_id, date_enrolled) VALUES
+(2, 1, '2025-10-01'),
+(3, 1, '2025-10-02'),
+(2, 2, '2025-10-03');
 
--- ========================================
--- جدول المدفوعات (Payments)
--- ========================================
-CREATE TABLE Payments (
-    payment_id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT NOT NULL,
-    course_id INT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    payment_method NVARCHAR(50),
-    status NVARCHAR(50) CHECK (status IN ('pending', 'completed', 'failed')) DEFAULT 'pending',
-    date DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (course_id) REFERENCES Courses(course_id)
-);
-GO
+INSERT INTO Payments (user_id, course_id, amount, payment_method, status, date) VALUES
+(2, 1, 199.00, 'card', 'completed', '2025-10-01'),
+(3, 1, 199.00, 'card', 'completed', '2025-10-02'),
+(2, 2, 249.00, 'wallet', 'completed', '2025-10-03');
 
--- ========================================
--- جدول التقييمات (Reviews)
--- ========================================
-CREATE TABLE Reviews (
-    review_id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT NOT NULL,
-    course_id INT NOT NULL,
-    rating INT CHECK (rating BETWEEN 1 AND 5),
-    comment NVARCHAR(MAX),
-    created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (course_id) REFERENCES Courses(course_id)
-);
+INSERT INTO Reviews (user_id, course_id, rating, comment, created_at) VALUES
+(2, 1, 5, N'الكورس ممتاز جدًا 👌', '2025-10-05'),
+(3, 1, 4, N'شرح كويس ومبسط', '2025-10-05'),
+(2, 2, 5, N'مفيد جدًا', '2025-10-06');
 GO
