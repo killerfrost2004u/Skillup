@@ -115,7 +115,7 @@ ipython_config.py
 #pdm.lock
 #pdm.toml
 .pdm-python
-.pdm-build/
+.pdm-build
 
 # pixi
 #   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
@@ -205,3 +205,15 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Other common ignores
+bin/
+obj/
+.DS_Store
