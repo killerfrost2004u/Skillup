@@ -18,4 +18,4 @@ try:
     conn.close()
 
 except pyodbc.Error as e:
-    print(f"❌ Connection failed: {e}")
+    print(f"❌ Connection iled: {e}")
