@@ -17,10 +17,9 @@
 * {
    font-family: 'Roboto', sans-serif;
    margin: 0;
-   padding: 10px;
+   padding: 0;
    box-sizing: border-box;
    outline: none;
-   text-align: center;
    border: none;
    text-decoration: none;
    text-transform: capitalize;
@@ -152,7 +151,7 @@ section {
 }
 
 .header .icons div{
-             color: #851212;
+             color:var(--wh);
             cursor: pointer;
             font-size: 2.5rem;
             margin-left: 2rem;
@@ -204,7 +203,7 @@ section {
     min-height: 100vh;
     display: flex;
     align-items:center;
-    background:url("download.jpeg");
+    background:url("home.jpeg");
     background-size:cover;
     background-position:center ;
 }
@@ -236,23 +235,29 @@ flex-wrap: wrap;
  }
 
  .about .row .image{
-    flex: 1 1 45rem;
+    flex: 1 1 30rem;
+    margin-right: 10px;
+    margin-left: 10px;
 
  }
  .about .row .image img{
     width: 100%;
+    margin-left: 12px;
  }
  
  .about .row .content{
     flex: 1 1 45rem;
-    padding: 2rem;
+    padding: 2em;
+    margin-right: 30px;
 
  }
  .about .row .content h3{
     font-size: 3rem;
     color:var(--gd);
-    padding: 1rem 0;
+    padding: 5rem 0;
     line-height: 1.8;
+    margin-left: 10px;
+    margin-top: -20px;
 
  }
 
@@ -261,111 +266,467 @@ flex-wrap: wrap;
     color: #ccc;
     padding: 1rem;
     line-height: 1.8;
+    margin-top: -15px;
  }
-.home .plans .the-plans {
+
+
+ /*track*/
+ .track{
+    min-height: 100vh;
+    display: flex;
+    align-items:center;
+    background:url("trackk.jpg");
+    background-size:contain;
+    background-position:center ;
+}
+
+.track .contact{
+    max-width: 60rem;
+}
+
+.track .contact h3{
+   font-size: 6rem;
+   text-transform: uppercase;
+   color:var(--bu);
+}
+
+.track .contact p{
+    font-size: 2rem;
+    text-transform: lighter;
+    line-height: 1.8;
+    padding: 1rem 0;
+    color: var(--gd);
+ }
+
+ /* TARCK end */
+/*review sec*/
+ .review .box-container{
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    direction: ltr;
-    gap: 40px;
-    margin-top: 40px;
-    margin-bottom: 40px;
+    grid-template-columns: repeat(auto-fit , minmax(30rem,1fr));
+    gap: 1.5rem;
+ }
+ .review .box-container .box{
+    border: var(--gd);
     text-align: center;
-}
+    padding:3rem 2rem;
+ }
 
-/* =================== FLIPPING CARD STYLES START =================== */
-
-.flipping-card-section {
-    min-height: 80vh; /* يضمن وجود مساحة كافية حول البطاقة */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f0f0f0; /* يمكنك تغيير لون الخلفية حسب رغبتك */
-    padding-top: 20rem; /* لإضافة مسافة من الهيدر الثابت */
-}
-
-.card-container {
-    perspective: 1000px; /* ضروري للتأثير ثلاثي الأبعاد */
-}
-
-.card {
-    width: 35rem; /* عرض البطاقة */
-    height: 45rem; /* طول البطاقة */
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.8s;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    border-radius: 15px;
-}
-
-.card:hover {
-    transform: rotateY(180deg);
-}
-
-.card .front,
-.card .back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden; /* لإخفاء الوجه الخلفي للعنصر عند قلبه */
-    border-radius: 15px;
-    overflow: hidden; /* لإخفاء أي جزء من الصورة يخرج عن إطار البطاقة */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.card .front {
-    background-size: cover;
-    background-position: center;
-    color: var(--wh);
-}
-
-/* طبقة لونية فوق الصورة لجعل النص أوضح */
-.card .front::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 15px;
-}
-
-.card .back {
-    background-color: var(--bu); /* استخدام اللون الأزرق من تصميمك */
-    color: var(--wh);
-    transform: rotateY(180deg);
-}
-
-.card .card-content {
-    padding: 2rem;
-    position: relative;
-    z-index: 1; /* للتأكد من أن المحتوى يظهر فوق الطبقة اللونية */
-}
-
-.card .card-content h2 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: var(--gd); /* استخدام اللون الذهبي من تصميمك */
-}
-
-.card .card-content p {
+ .review .box-container .box p{
+    
     font-size: 1.8rem;
-    line-height: 1.6;
-}
+    line-height: 1.8;
+    color:var(--bu);  /*chhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh*/
+    padding: 3rem 0 ;
+   
+ }
 
-/* استخدام نفس تصميم الزر الموجود لديك */
-.card .back .btn {
-    margin-top: 2rem;
-    background: var(--gd);
+ .review .box-container .box .user{
+    height:30rem;
+    width: 30rem;
+    border-radius: 60%;
+    object-fit: cover;
+ }
+
+ .review .box-container .box h3{
+    padding: 1rem 0;
+    font-size:2.5rem;
     color: var(--bu);
 }
-.card .back .btn:hover {
-   letter-spacing: .2rem;
-   opacity: 0.9;
+
+.review .box-container .box .stars i{
+   
+    font-size:2rem;
+    color: var(--gd);
+} 
+
+/*contact sec*/
+
+.contact .row{
+    display: flex;
+  
+    background: var(--black);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.contact .row .map{
+    flex: 1 1 4.5rem;
+    width: 100%;
+    object-fit: cover;
+}
+
+.contact .row form{
+    flex: 1 1 45rem;
+    padding: 5rem 2rem;
+    text-align: center;
+}
+
+.contact .row form h3{
+    text-transform: uppercase;
+    font-size: 3.5rem;
+    color: #fff;
+}
+
+.contact .row form .inputbox{
+    display: flex;
+    align-items: center;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    background:var(--black);
+    border:var(--border);
+}
+
+.contact .row form .inputbox span{
+    color: #fff;
+    font-size: 2rem;
+    padding-left: 2rem;
+}
+
+.contact .row form .inputbox input{
+    width: 100%;
+    padding: 2rem;
+    font-size: 1.7rem;
+    color: #fff;
+    text-transform: none;
+    background: none;
+}
+/*ends*/
+/*bolgs start*/
+.blogs .box-container{
+    display: grid;
+    grid-template-columns: repeat(auto-fit , minmax(30rem , 1fr));
+    gap: 1.5rem;
+
+}
+.blogs .box-container .box{
+    border: var(--gd);
+
 }
 
 
-/* =================== FLIPPING CARD STYLES END =================== */
+.blogs .box-container .box .content{
+    padding: 2rem;
+}
+.blogs .box-container .box .content .title{
+    font-size:4rem;
+    line-height: 1.5;
+    color: var(--bu);
+}
+.blogs .box-container .box .content .title:hover{
+    color: var(--gd);
+}
+.blogs .box-container .box .content span:hover{
+    color: var(--bu);
+    
+}
+.blogs .box-container .box .content span{
+    color: var(--gd);
+    display: block;
+    padding-top: 1rem;
+    font-size: 2rem;
+}
+.blogs .box-container .box .content p{
+    font-size: 1.6rem;
+    line-height: 1.8;
+    color: var(--bu);
+    padding: 1rem 0;
+
+
+
+}
+
+/*footerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr*/
+
+
+
+/* ---------- Base Footer Setup ---------- */
+/*
+footer.footer {
+  position: relative;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: transparent;
+  color: #fff;
+  text-align: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+
+section.ss-icon {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  width: auto;
+  min-height: auto;
+  font-size: 30px;
+  text-align: center;
+  padding: 15px 0;
+}
+
+section.ss-icon a {
+  display: inline-block;
+  width: 60px;
+  height: 60px;
+  perspective: 300px;
+}
+
+section.ss-icon a article {
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bu);
+  box-shadow: 0 0 6px -2px #000, 0 0 45px -20px #000;
+  color: #fff;
+  line-height: 60px;
+  transform: rotateY(0deg);
+  transition: transform 0.4s linear, background-color 0.2s linear, color 0.2s linear;
+}
+
+section.ss-icon a:hover article {
+  transform: rotateY(180deg);
+  color: #eee;
+}
+
+
+section.ss-icon a:nth-child(1):hover article { background-color: #3B5998; } 
+section.ss-icon a:nth-child(2):hover article { background-color: #00ACED; } 
+section.ss-icon a:nth-child(3):hover article { background-color: #c3344e; }
+section.ss-icon a:nth-child(4):hover article { background-color: #0077b5; }
+section.ss-icon a:nth-child(5):hover article { background-color: #4d4848; } 
+section.ss-icon a:nth-child(6):hover article { background-color: #1769FF; } 
+section.ss-icon a:nth-child(7):hover article { background-color: #EA4C89; } 
+section.ss-icon a:nth-child(8):hover article { background-color: #CB2027; } 
+
+section.ss-icon a span {
+  display: block;
+  transition: transform 0.2s linear, text-shadow 0.2s linear;
+}
+
+section.ss-icon a:hover span {
+  transform: scale(-1, 1);
+  text-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
+}
+
+body {
+  margin: 0;
+  padding-bottom: 60px;
+  background: var(--wh);
+}
+
+
+footer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: #d6dfed;
+}
+
+.background {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleY(3) scaleX(2.25);
+  transform-origin: bottom;
+  pointer-events: none;
+}
+
+footer section:not(.ss-icon) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 60px;
+}
+
+ul {
+  display: flex;
+  list-style: none;
+  gap: 15px;
+  padding: 0;
+  margin: 0;
+}
+
+.socials a {
+  font-size: 24px;
+  color: #d6dfed;
+  transition: 0.3s;
+}
+
+.socials a:hover {
+  color: #5378f2;
+  transform: scale(1.2);
+}
+
+.links a {
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+  color: inherit;
+}
+
+.links a:hover {
+  color: #5378f2;
+}
+
+.legal {
+  font-size: 12px;
+  opacity: 0.7;
+}
+#ribbons-container {
+    position: relative;
+    width: 100%;
+    height: 0vh;
+}
+
+canvas {
+    display: block;
+}
+*/
+/* ---------- Base Footer Setup ---------- */
+footer.footer {
+  position: relative;
+  width: 100%;
+  height: 370px;           /* ارتفاع ثابت للفوتر */
+  background-color: transparent;
+  color: #d6dfed;
+  text-align: center;
+  overflow: hidden;        /* يخلي الأمواج لا تتجاوز حدود الفوتر */
+}
+
+/* ---------- Ribbons Container ---------- */
+#ribbons-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 200%;           /* يغطي كامل مساحة الفوتر */
+  z-index: 1;      
+  margin-top: 200px;      /* يكون تحت محتوى الفوتر */
+}
+
+canvas {
+  display: block;
+}
+
+/* ---------- Social Icon Section ---------- */
+section.ss-icon {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 1px 0;
+  font-size: 30px;
+  text-align: center;
+  margin-top: 100px;
+  margin-bottom: -350px;
+}
+
+section.ss-icon a {
+  display: inline-block;
+  width: 60px;
+  height: 60px;
+  perspective: 300px;
+}
+
+section.ss-icon a article {
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: #333;  /* لون أساسي للأيقونات */
+  box-shadow: 0 0 6px -2px #000, 0 0 45px -20px #000;
+  color: #fff;
+  line-height: 60px;
+  transform: rotateY(0deg);
+  transition: transform 0.4s linear, background-color 0.2s linear, color 0.2s linear;
+}
+
+section.ss-icon a:hover article {
+  transform: rotateY(180deg);
+  color: #eee;
+}
+
+/* ---------- Platform Hover Colors ---------- */
+section.ss-icon a:nth-child(1):hover article { background-color: #3B5998; } /* Facebook */
+section.ss-icon a:nth-child(2):hover article { background-color: #00ACED; } /* Twitter */
+section.ss-icon a:nth-child(3):hover article { background-color: #c3344e; } /* Instagram */
+section.ss-icon a:nth-child(4):hover article { background-color: #0077b5; } /* LinkedIn */
+section.ss-icon a:nth-child(5):hover article { background-color: #4d4848; } /* GitHub */
+section.ss-icon a:nth-child(6):hover article { background-color: #1769FF; } /* Behance */
+section.ss-icon a:nth-child(7):hover article { background-color: #EA4C89; } /* Dribbble */
+section.ss-icon a:nth-child(8):hover article { background-color: #CB2027; } /* Pinterest */
+
+section.ss-icon a span {
+  display: block;
+  transition: transform 0.2s linear, text-shadow 0.2s linear;
+}
+
+section.ss-icon a:hover span {
+  transform: scale(-1, 1);
+  text-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
+}
+
+/* ---------- Footer Links & Legal ---------- */
+footer section:not(.ss-icon) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  
+}
+
+ul {
+  display: flex;
+  list-style: none;
+  gap: 15px;
+  padding: 0;
+  margin: 0;
+}
+
+.links a {
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+  color: inherit;
+}
+
+.links a:hover {
+  color: #5378f2;
+}
+
+.socials a {
+  font-size: 24px;
+  color: #d6dfed;
+  transition: 0.3s;
+}
+
+.socials a:hover {
+  color: #5378f2;
+  transform: scale(1.2);
+}
+
+.legal {
+  font-size: 12px;
+  opacity: 0.7;
+}
