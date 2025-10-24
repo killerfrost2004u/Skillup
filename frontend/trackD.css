@@ -1,0 +1,111 @@
+  
+ :root {
+
+   --wh:#FFFFFF;
+   --gd: #DFCC8C;
+   --bu: rgb(51, 142, 205);
+   
+}
+ * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background:var(--bu);
+      color: var(--wh);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 30px;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    p.description {
+      color: var(--gd);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      width: 80%;
+      max-width: 900px;
+    }
+
+    .card {
+      background: transparent;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      perspective: 1000px;
+      position: relative;
+    }
+
+    .inner {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .card:hover .inner {
+      transform: rotateY(180deg);
+    }
+
+    .front,
+    .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .front {
+      background-size: cover;
+      background-position: center;
+    }
+
+    .front p {
+      background:var(--gd);
+      padding: 10px;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .back {
+      background:var(--gd);
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .button {
+      margin-top: 10px;
+      background: var(--bu);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      background:var(--gd);
+    }
