@@ -271,3 +271,101 @@ flex-wrap: wrap;
     margin-bottom: 40px;
     text-align: center;
 }
+
+/* =================== FLIPPING CARD STYLES START =================== */
+
+.flipping-card-section {
+    min-height: 80vh; /* يضمن وجود مساحة كافية حول البطاقة */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0; /* يمكنك تغيير لون الخلفية حسب رغبتك */
+    padding-top: 20rem; /* لإضافة مسافة من الهيدر الثابت */
+}
+
+.card-container {
+    perspective: 1000px; /* ضروري للتأثير ثلاثي الأبعاد */
+}
+
+.card {
+    width: 35rem; /* عرض البطاقة */
+    height: 45rem; /* طول البطاقة */
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.8s;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+}
+
+.card:hover {
+    transform: rotateY(180deg);
+}
+
+.card .front,
+.card .back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* لإخفاء الوجه الخلفي للعنصر عند قلبه */
+    border-radius: 15px;
+    overflow: hidden; /* لإخفاء أي جزء من الصورة يخرج عن إطار البطاقة */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.card .front {
+    background-size: cover;
+    background-position: center;
+    color: var(--wh);
+}
+
+/* طبقة لونية فوق الصورة لجعل النص أوضح */
+.card .front::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+}
+
+.card .back {
+    background-color: var(--bu); /* استخدام اللون الأزرق من تصميمك */
+    color: var(--wh);
+    transform: rotateY(180deg);
+}
+
+.card .card-content {
+    padding: 2rem;
+    position: relative;
+    z-index: 1; /* للتأكد من أن المحتوى يظهر فوق الطبقة اللونية */
+}
+
+.card .card-content h2 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--gd); /* استخدام اللون الذهبي من تصميمك */
+}
+
+.card .card-content p {
+    font-size: 1.8rem;
+    line-height: 1.6;
+}
+
+/* استخدام نفس تصميم الزر الموجود لديك */
+.card .back .btn {
+    margin-top: 2rem;
+    background: var(--gd);
+    color: var(--bu);
+}
+.card .back .btn:hover {
+   letter-spacing: .2rem;
+   opacity: 0.9;
+}
+
+
+/* =================== FLIPPING CARD STYLES END =================== */
