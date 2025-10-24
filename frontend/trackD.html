@@ -1,60 +1,97 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="trackD.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Carousel</title>
+    <link rel="stylesheet" href="trackD.css">
 </head>
 <body>
-  <h1>Card Flip</h1>
-  <p class="description">Hover over a card to flip it.</p>
+    <div class="main-container">
+        <div class="carousel-section">
+            <div class="carousel-container">
+                <button class="nav-arrow up">
+                    <img src="assets/top.png" alt="Up">
+                </button>
+                <div class="carousel-track">
+                    <div class="card" data-index="0">
+                        <img src="https://ik.imagekit.io/gopichakradhar/luffy/o1.jpeg?updatedAt=1754289569411" alt="Team Member 1">
+                    </div>
+                    <div class="card" data-index="1">
+                        <img src="https://ik.imagekit.io/gopichakradhar/luffy/o2.jpeg?updatedAt=1754289569307" alt="Team Member 2">
+                    </div>
+                    <div class="card" data-index="2">
+                        <img src="https://ik.imagekit.io/gopichakradhar/luffy/o4.jpeg?updatedAt=1754289569398" alt="Team Member 3">
+                    </div>
+                    <div class="card" data-index="3">
+                        <img src="https://ik.imagekit.io/gopichakradhar/luffy/o3.jpeg?updatedAt=1754289569422" alt="Team Member 4">
+                    </div>
+                    <div class="card" data-index="4">
+                        <img src="https://ik.imagekit.io/gopichakradhar/luffy/o5.jpeg?updatedAt=1754289569406" alt="Team Member 5">
+                    </div>
+                    <div class="card" data-index="5">
+                        <img src="https://ik.imagekit.io/gopichakradhar/luffy/o6.jpeg?updatedAt=1754289569438" alt="Team Member 6">
+                    </div>
+                </div>
+                <button class="nav-arrow down">
+                    <img src="https://ik.imagekit.io/gopichakradhar/icons/down.png?updatedAt=1754290523249" alt="Down">
+                </button>
+            </div>
+        </div>
 
-  <div class="cards">
-    <div class="card">
-      <div class="inner">
-        <div class="front" style="background-image: url('https://source.unsplash.com/300x401')">
-          <p>Lorem ipsum dolor sit amet consectetur adipisi.</p>
-        </div>
-        <div class="back">
-          <div>
-            <p>Consectetur adipisicing elit. Possimus, praesentium?</p>
-            <p>Provident consectetur natus voluptatem quis tenetur sed beatae eius sint.</p>
-            <button class="button">Click Here</button>
-          </div>
-        </div>
-      </div>
-    </div>
+        <div class="controls-section">
+            <div class="nav-controls">
+                <button class="nav-arrow up">
+                    <img src="https://ik.imagekit.io/gopichakradhar/icons/top.png?updatedAt=1754290522765" alt="Up">
+                </button>
+                <button class="nav-arrow down">
+                    <img src="https://ik.imagekit.io/gopichakradhar/icons/down.png?updatedAt=1754290523249" alt="Down">
+                </button>
+            </div>
 
-    <!-- كرري الكروت -->
-    <div class="card">
-      <div class="inner">
-        <div class="front" style="background-image: url('https://source.unsplash.com/300x402')">
-          <p>Lorem ipsum dolor sit amet consectetur adipisi.</p>
-        </div>
-        <div class="back">
-          <div>
-            <p>Consectetur adipisicing elit. Possimus, praesentium?</p>
-            <p>Provident consectetur natus voluptatem quis tenetur sed beatae eius sint.</p>
-            <button class="button">Click Here</button>
-          </div>
-        </div>
-      </div>
-    </div>
+            <div class="member-info">
+                <h2 class="member-name">Emily Kim</h2>
+                <p class="member-role">Founder</p>
+            </div>
 
-    <div class="card">
-      <div class="inner">
-        <div class="front" style="background-image: url('https://source.unsplash.com/300x403')">
-          <p>Lorem ipsum dolor sit amet consectetur adipisi.</p>
+            <div class="dots">
+                <div class="dot active" data-index="0"></div>
+                <div class="dot" data-index="1"></div>
+                <div class="dot" data-index="2"></div>
+                <div class="dot" data-index="3"></div>
+                <div class="dot" data-index="4"></div>
+                <div class="dot" data-index="5"></div>
+            </div>
         </div>
-        <div class="back">
-          <div>
-            <p>Consectetur adipisicing elit. Possimus, praesentium?</p>
-            <p>Provident consectetur natus voluptatem quis tenetur sed beatae eius sint.</p>
-            <button class="button">Click Here</button>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
+     <div class="background">
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+   <span></span>
+</div>
+
+<script src="trackD.js"></script>
+  <!-- Floating button with image -->
+                <a href="https://gopichakradhar.me" target="_blank" id="super-btn" title="Visit gopichakradhar.me">
+                        <img src="https://ik.imagekit.io/gopichakradhar/assets/super.jpg?updatedAt=1748004690247" alt="Super" />
+                </a>
 </body>
 </html>
+
