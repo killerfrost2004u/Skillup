@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from decimal import Decimal
 import datetime
 from flask_bcrypt import Bcrypt
-from flask_cors import CORS # Import CORS
+from flask_cors import CORS
 import json
 
 # Load environment variables (like DB connection details)
@@ -81,9 +81,7 @@ def get_table_data(table_name):
 
 @app.route('/register', methods=['POST'])
 def register_user():
-    """
-    Handles new user registration.
-    """
+    """Handles new user registration."""
     try:
         data = request.get_json()
         name = data.get('username')
@@ -136,9 +134,7 @@ def register_user():
 
 @app.route('/login', methods=['POST'])
 def login_user():
-    """
-    Handles user login.
-    """
+    """Handles user login."""
     try:
         data = request.get_json()
         name = data.get('username')
