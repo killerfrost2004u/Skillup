@@ -144,3 +144,93 @@ function handleSwipe() {
 }
 
 updateCarousel(0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+
+class Particle {
+  constructor(x, y, size, color, speedX, speedY) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.color = color;
+    this.speedX = speedX;
+    this.speedY = speedY;
+  }
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    if (this.size > 0.2) this.size -= 0.02;
+  }
+  draw() {
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function handleParticles() {
+  for (let i = 0; i < particles.length; i++) {
+    particles[i].update();
+    particles[i].draw();
+    if (particles[i].size <= 0.3) {
+      particles.splice(i, 1);
+      i--;
+    }
+  }
+}
+
+canvas.addEventListener("mousemove", (event) => {
+  for (let i = 0; i < 5; i++) {
+    particles.push(
+      new Particle(
+        event.x,
+        event.y,
+        Math.random() * 5 + 2,
+        "rgba(255, 255, 255, 0.8)",
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2
+      )
+    );
+  }
+});
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  handleParticles();
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+
+
+
+
+
+
+
+
+

@@ -276,6 +276,10 @@ body {
   margin: 10px 0 5px 0;
   color: var(--bu);
 }
+.team-member h4 {
+  margin: 10px 0 5px 0;
+  color: var(--gd);
+}
 
 .team-member p {
   font-size: 0.95rem;
