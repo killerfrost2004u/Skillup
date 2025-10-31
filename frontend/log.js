@@ -15,9 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Utility Functions ---
 
     function displayMessage(message, isSuccess = true) {
-        // Using alert for immediate feedback
+        // Using alert for immediate feedback (change this to a modern modal later!)
         console.log(`[${isSuccess ? 'SUCCESS' : 'ERROR'}] ${message}`);
-        // NOTE: Since the registration worked, this is the function that displayed the success message!
         alert(message);
     }
 
@@ -109,8 +108,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
 
                 if (response.ok) {
-                    displayMessage(`Login successful! Welcome ${result.username}.`, true);
-                    // Handle post-login redirection/UI update here
+                    displayMessage(`Login successful! Welcome ${result.username}. Redirecting to the dashboard.`, true);
+
+                    // *** NEW REDIRECT ACTION ***
+                    // Redirects user to the main page of the application
+                    window.location.href = './SKILL UP.html';
+
                 } else {
                     displayMessage(result.message || result.error || 'Login failed. Check username and password.', false);
                 }
