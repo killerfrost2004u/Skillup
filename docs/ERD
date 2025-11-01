@@ -1,0 +1,52 @@
+Table users {
+  id serial [pk]
+  name varchar
+  email varchar [unique]
+  password varchar
+  role varchar
+  created_at timestamp
+}
+
+Table courses {
+  id serial [pk]
+  title varchar
+  description text
+  instructor_id int [ref: > users.id]
+  price decimal
+  created_at timestamp
+}
+
+Table lessons {
+  id serial [pk]
+  course_id int [ref: > courses.id]
+  title varchar
+  content text
+  position int
+  created_at timestamp
+}
+
+Table enrollments {
+  id serial [pk]
+  user_id int [ref: > users.id]
+  course_id int [ref: > courses.id]
+  date_enrolled timestamp
+}
+
+Table payments {
+  id serial [pk]
+  user_id int [ref: > users.id]
+  course_id int [ref: > courses.id]
+  amount decimal
+  payment_method varchar
+  status varchar
+  date timestamp
+}
+
+Table reviews {
+  id serial [pk]
+  user_id int [ref: > users.id]
+  course_id int [ref: > courses.id]
+  rating int
+  comment text
+  created_at timestamp
+}

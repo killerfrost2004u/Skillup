@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link href="https://fonts.googleapis.com/css2?family=Bungee+Inline&family=Orbitron:wght@500&display=swap" rel="stylesheet">
+    <title>Document</title>
+    <!-- font awesome cdn link -->
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- custom css filelink -->
+    <link rel="stylesheet" href="SKILL UP.CSS" />
+    <script src="SKILL UP .JS"></script>
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js"></script>
+
+
+
+ 
+
+
+
+
+
+  </head>
+  
+  <body>
+
+     
+
+
+
+
+
+
+    <!--header sction -->
+    <header class="header">
+  <a href="#" class="logo">
+    <dotlottie-wc 
+      src="https://lottie.host/dbb61b30-d598-43e3-abe9-f954f634e04f/OltiP8Nx71.lottie" 
+      style="width: 200px; height: 200px;" 
+      autoplay 
+      loop>
+    </dotlottie-wc>
+     <div class="logo-container">
+        <h1 class="main-text striped-text">SKILL UP</h1>
+        <p class="sub-text">THE FUTURE IS YOURS.</p>
+    </div>
+  </div>
+  <script 
+    src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js" 
+    type="module">
+  </script>
+
+  <nav class="navbar">
+    <a href="#home">home</a>
+    <a href="#about">about</a>
+    <a href="#track">track</a>
+    <a href="#review">review</a>
+    <a href="#contact">contact</a>
+    <a href="#blogs">blogs</a>
+  </nav>
+</header>
+
+    <!--header endsssss-->
+
+    <!--HOMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE sec start-->
+  <section id="home" class="home-hero">
+  
+
+  <!-- Neon Lines -->
+  <div class="neon-bg" id="neon-bg"></div>
+
+  <div class="hero-content">
+    <h1><span class="highlight">THE FUTURE IS YOURS</span></h1>
+    <div class="code-editor" id="code-editor"></div>
+    <div class="output" id="output"></div>
+    <a href="log.html" class="cta-btn">START YOUR Journey &gt;&gt;</a>
+  </div>
+
+</section>
+
+
+<script>
+// Generate neon background lines
+const neonBg = document.getElementById('neon-bg');
+for(let i=0;i<30;i++){
+  let line = document.createElement('div');
+  line.className='neon-line';
+  line.style.left = (i*3)+'%';
+  line.style.animationDuration = (3+Math.random()*5)+'s';
+  neonBg.appendChild(line);
+}
+
+// Typing Code Editor with Output
+const codeLines = [
+  'function helloWorld() { console.log("Hello World!"); }',
+  'helloWorld();',
+  'for(let i=1;i<=3;i++){ console.log("Coding is fun!"); }',
+  'const ai = () => console.log("AI loop active"); ai();'
+];
+
+const outputResults = [
+  'function helloWorld() { console.log("Hello World!"); }',
+  'Hello World!',
+  'Coding is fun!\nCoding is fun!\nCoding is fun!',
+  'AI loop active'
+];
+
+let editor = document.getElementById('code-editor');
+let output = document.getElementById('output');
+let currentLine = 0;
+
+function typeLine(line, callback) {
+  let i = 0;
+  editor.innerHTML = '';
+  output.textContent='';
+  let interval = setInterval(()=>{
+    let char = line[i];
+    if(char.match(/function|const|let|for|console/g)){
+      editor.innerHTML+='<span class="keyword">'+char+'</span>';
+    } else {
+      editor.innerHTML+=char;
+    }
+    i++;
+    if(i>=line.length){
+      clearInterval(interval);
+      callback();
+    }
+  },50);
+}
+
+function showOutput(result, callback){
+  let i=0;
+  output.textContent='';
+  let interval = setInterval(()=>{
+    output.textContent+=result[i];
+    i++;
+    if(i>=result.length){
+      clearInterval(interval);
+      setTimeout(callback,500);
+    }
+  },30);
+}
+
+function loopCode(){
+  typeLine(codeLines[currentLine],()=>{
+    showOutput(outputResults[currentLine],()=>{
+      currentLine=(currentLine+1)%codeLines.length;
+      loopCode();
+    });
+  });
+}
+
+loopCode();
+</script>
+ 
+<!--ABOUTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT sec start-->
+<section class="about" id="about">
+    <h1 class="heading"> <span>About</span>     us </h1> 
+
+
+<div class="row">
+  <!--photoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo-->
+<div class="image">
+    <img src="us.png" alt="" >
+    
+</div>
+
+<div class="content">
+    <h3>what makes us the best </h3>
+    <p>Our unwavering commitment to excellence, innovative</p>
+    <p>Solutions, and a team that transforms challenges into opportunities. We deliver results with precision, integrity, and a passion for exceeding expectations.”</p>
+    <a href="us.html" class="btn">OUR TEAM</a>
+
+</div>
+</div>
+</section>
+<!--about sec endssss----------------------->
+<!--TRACKKKKKKKKKKKKKKKKKKKKKKKKKK-->
+<section class="track" id="track">
+        
+
+        
+      <div class="contact">
+        <h3>Your Journey Starts Here</h3>
+        <p>
+          Choose your track, explore courses, and gain the skills that will take you to the next level. Every step you take brings you closer to your goals—start today and unlock your potential
+        </p>
+        <a href="trackD.html" class="btn">Start YOUR Journey</a>
+      </div>
+    </section>
+<!--REVIEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW sec STARTTTTTTTTTTTTTT----------------------->
+
+<section class="review" id="review">
+    <h1 class="heading">customer's <span>review</span></h1>
+
+ <div class="box-container">
+
+
+    <div class="box">
+        
+        <p>kill Up helped me learn web development from scratch! The platform is clean, easy to use, and full of helpful tracks.</p>
+        <img src=".//jd.png" alt="" class="user">
+        <h3> James William </h3>
+
+        <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i> 
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star-half-alt"></i>
+         </div>  
+    </div>
+
+    <div class="box">
+        
+        <p>"Great platform for beginners! The YouTube course links are well-selected, and the progress bar keeps me motivated to finish."</p>
+        <img src="./BETTY SMITH.png" alt="" class="user" >
+        <h3>  BETTY SMITH </h3>
+
+        <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i> 
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star-half-alt"></i>
+         </div>  
+    </div>
+
+    <div class="box">
+       
+        <p>"Skill Up gave me direction when I didn’t know where to start. The tracks are clear and the layout is smooth."</p>
+        <img src=".//MARK Thomas.png" alt="" class="user">
+        <h3> MARK THOMAS</h3>
+
+        <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i> 
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star-half-alt"></i>
+         </div>  
+    </div>
+
+    <div class="box">
+        
+        <p>"Skill Up made learning feel effortless! The simple layout and organized tracks helped me stay focused and consistent."</p>
+        <img src="./Sofia paul .png" alt="" class="user">
+        <h3>  SOFIA PAUL </h3>
+
+        <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i> 
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star-half-alt"></i>
+         </div>  
+    </div>
+       
+ </div>
+
+</section>
+
+<!--contact section stars-->
+  <section class="contact" id="contact">
+    <h1 class="heading"><span>contact</span>us</h1>
+    
+    <div class="row">
+      <iframe class="map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3419.3600918434795!2d31.378677299999985!3d31.01621560000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14f79c473b2055b1%3A0xe683c9e51dbbf6a4!2sMisr%20higher%20institute%20for%20engineering%20and%20technology!5e0!3m2!1sen!2seg!4v1715487417869!5m2!1sen!2seg"  allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <form action="">
+        <h3>contact us</h3>
+        <div class="inputbox">
+            <span class="fas fa-user"></span>
+            <input type="text" placeholder="name">
+        </div>
+
+        <div class="inputbox">
+            <span class="fas fa-envelope"></span>
+            <input type="email" placeholder="email">
+        </div>
+        <div class="inputbox">
+            <span class="fas fa-phone"></span>
+            <input type="number" placeholder="number">
+        </div>
+        <input type="submit" value="contact now" class="btn">
+      </form>
+    </div>
+  </section>
+  
+ <!--contact section end-->  
+
+<!--bloooooooooooooooooooooooooooooooooooooogs section start-->
+<section class="blogs" id="blogs">
+    <h1 class="heading">our <span>blogs</span></h1>
+
+    <div class="box-container">
+
+        <div class="box">
+            <div class="image">
+                <img src="./collection.jpg" alt=""  height="500" width="600">
+                <div class="content">
+                    <a herf="#" class="title">5 Essential Skills Every Developer Should Learn in 2025</a>
+                    <span>by SKILL UP TEAM </span>
+                    <p>Tech is evolving fast — learning skills like problem solving, teamwork, and mastering JavaScript or Python will help you stay ahead in 2025.</p>
+                    <a href="#" class="btn">reading more</a>
+                </div>
+            </div>
+
+            
+        <div class="box">
+            <div class="image">
+                <img src="./capu.jpg" alt="" height="500" width="600">
+                <div class="content">
+                    <a herf="#" class="title">How to Stay Motivated While Learning to Code</a>
+                    <span>by SKILL UP TEAM</span>
+                    <p>It’s easy to feel stuck sometimes, but small wins and daily practice keep your motivation strong. Remember — progress, not perfection!</p>
+                    <a href="#" class="btn">reading more</a>
+                </div>
+            </div>
+
+            <div class="box">
+                <div class="image">
+                    <img src="./cup.jpg" alt="" height="490" width="650" >
+                    <div class="content">
+                        <a herf="#" class="title">Front-End vs Back-End: Which Path Is Right for You?</a>
+                        <span>by SKILL UP TEAM</span>
+                        <p>Front-end builds what users see. Back-end powers how it works. Explore both sides to find which one fits your style best.</p>
+                        <a href="#" class="btn">reading more</a>
+                    </div>
+                </div>
+
+        </div>
+    </div>
+</section>
+   <!-- From Uiverse.io by Cobp --> 
+<div class="container-ai-input">
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <div class="area"></div>
+  <label class="container-wrap">
+    <input type="checkbox" />
+    <div class="card">
+      <div class="background-blur-balls">
+        <div class="balls">
+          <span class="ball rosa"></span>
+          <span class="ball violet"></span>
+          <span class="ball green"></span>
+          <span class="ball cyan"></span>
+        </div>
+      </div>
+      <div class="content-card">
+        <div class="background-blur-card">
+          <div class="eyes">
+            <span class="eye"></span>
+            <span class="eye"></span>
+          </div>
+          <div class="eyes happy">
+            <svg fill="none" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M8.28386 16.2843C8.9917 15.7665 9.8765 14.731 12 14.731C14.1235 14.731 15.0083 15.7665 15.7161 16.2843C17.8397 17.8376 18.7542 16.4845 18.9014 15.7665C19.4323 13.1777 17.6627 11.1066 17.3088 10.5888C16.3844 9.23666 14.1235 8 12 8C9.87648 8 7.61556 9.23666 6.69122 10.5888C6.33728 11.1066 4.56771 13.1777 5.09858 15.7665C5.24582 16.4845 6.16034 17.8376 8.28386 16.2843Z"
+              ></path>
+            </svg>
+            <svg fill="none" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M8.28386 16.2843C8.9917 15.7665 9.8765 14.731 12 14.731C14.1235 14.731 15.0083 15.7665 15.7161 16.2843C17.8397 17.8376 18.7542 16.4845 18.9014 15.7665C19.4323 13.1777 17.6627 11.1066 17.3088 10.5888C16.3844 9.23666 14.1235 8 12 8C9.87648 8 7.61556 9.23666 6.69122 10.5888C6.33728 11.1066 4.56771 13.1777 5.09858 15.7665C5.24582 16.4845 6.16034 17.8376 8.28386 16.2843Z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="container-ai-chat">
+        <div class="chat">
+          <div class="chat-bot">
+            <textarea
+              placeholder="Imagine Something...✦˚"
+              name="chat_bot"
+              id="chat_bot"
+            ></textarea>
+          </div>
+          <div class="options">
+            <div class="btns-add">
+              <button>
+                <svg
+                  viewBox="0 0 24 24"
+                  height="20"
+                  width="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M7 8v8a5 5 0 1 0 10 0V6.5a3.5 3.5 0 1 0-7 0V15a2 2 0 0 0 4 0V8"
+                    stroke-width="2"
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                  ></path>
+                </svg>
+              </button>
+              <button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm0 10a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm10 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zm0-8h6m-3-3v6"
+                  ></path>
+                </svg>
+              </button>
+              <button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10m-2.29-2.333A17.9 17.9 0 0 1 8.027 13H4.062a8.01 8.01 0 0 0 5.648 6.667M10.03 13c.151 2.439.848 4.73 1.97 6.752A15.9 15.9 0 0 0 13.97 13zm9.908 0h-3.965a17.9 17.9 0 0 1-1.683 6.667A8.01 8.01 0 0 0 19.938 13M4.062 11h3.965A17.9 17.9 0 0 1 9.71 4.333A8.01 8.01 0 0 0 4.062 11m5.969 0h3.938A15.9 15.9 0 0 0 12 4.248A15.9 15.9 0 0 0 10.03 11m4.259-6.667A17.9 17.9 0 0 1 15.973 11h3.965a8.01 8.01 0 0 0-5.648-6.667"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <button class="btn-submit">
+              <i>
+                <svg viewBox="0 0 512 512">
+                  <path
+                    d="M473 39.05a24 24 0 0 0-25.5-5.46L47.47 185h-.08a24 24 0 0 0 1 45.16l.41.13l137.3 58.63a16 16 0 0 0 15.54-3.59L422 80a7.07 7.07 0 0 1 10 10L226.66 310.26a16 16 0 0 0-3.59 15.54l58.65 137.38c.06.2.12.38.19.57c3.2 9.27 11.3 15.81 21.09 16.25h1a24.63 24.63 0 0 0 23-15.46L478.39 64.62A24 24 0 0 0 473 39.05"
+                    fill="currentColor"
+                  ></path>
+                </svg>
+              </i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </label>
+</div>
+
+
+<!--blooooooooooooooooooooooooooooooooooooooooooog section endDDDDDDDDDDDDDDDDDDDDD-->
+<!--FOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOTERRRRRRRRRRRRRRRRR STARTTTTTTTTTT-->
+
+  <!-- Section for icons -->
+  <section class="ss-icon">
+    <a href="#"><article><span><i class="fab fa-facebook-f"></i></span></article></a>
+    <a href="#"><article><span><i class="fab fa-twitter"></i></span></article></a>
+    <a href="#"><article><span><i class="fab fa-instagram"></i></span></article></a>
+    <a href="#"><article><span><i class="fab fa-linkedin-in"></i></span></article></a>
+    <a href="#"><article><span><i class="fab fa-github"></i></span></article></a>
+    <a href="#"><article><span><i class="fab fa-behance"></i></span></article></a>
+    <a href="#"><article><span><i class="fab fa-dribbble"></i></span></article></a>
+    <a href="#"><article><span><i class="fab fa-pinterest"></i></span></article></a>
+  </section>
+
+  <!-- Animated wave background WAVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEES -->
+  <div class="background">
+    <svg
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      x="0px"
+      y="0px"
+      width="100%"
+      height="100%"
+      viewBox="0 0 1600 900"
+    >
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+  <stop offset="30%" style="stop-color: rgb(51, 142, 205); stop-opacity: 0.9"></stop>
+  <stop offset="50%" style="stop-color: rgba(230, 206, 127, 0.3)"></stop>
+  <stop offset="100%" style="stop-color: #DFCC8C; stop-opacity: 0.1"></stop>
+</linearGradient>
+
+        <path
+          id="wave"
+          fill="url(#bg)"
+          d="M-363.852,502.589c0,0,236.988-41.997,505.475,0
+      s371.981,38.998,575.971,0s293.985-39.278,505.474,5.859s493.475,48.368,716.963-4.995v560.106H-363.852V502.589z"
+        />
+      </defs>
+      <g>
+        <use xlink:href="#wave" opacity=".3">
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="translate"
+            dur="8s"
+            calcMode="spline"
+            values="270 230; -334 180; 270 230"
+            keyTimes="0; .5; 1"
+            keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0"
+            repeatCount="indefinite"
+          />
+        </use>
+        <use xlink:href="#wave" opacity=".6">
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="translate"
+            dur="6s"
+            calcMode="spline"
+            values="-270 230;243 220;-270 230"
+            keyTimes="0; .6; 1"
+            keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0"
+            repeatCount="indefinite"
+          />
+        </use>
+        <use xlink:href="#wave" opacity=".9">
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="translate"
+            dur="4s"
+            calcMode="spline"
+            values="0 230;-140 200;0 230"
+            keyTimes="0; .4; 1"
+            keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0"
+            repeatCount="indefinite"
+          />
+        </use>
+      </g>
+    </svg>
+  </div>
+
+ 
+  
+</footer>
+ <!-- ENDf ffffoooooooooooooooooottttttttttttttteeeeeeeeeeeeeeeeeeeeeeeeerrrrrrrrrr content -->
+
+
+<!--mouseeeeeeeeeeeeeeeeeeeeeeeee-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+ </body>
+</html>
