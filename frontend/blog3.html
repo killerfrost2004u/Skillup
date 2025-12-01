@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI & Machine Learning Trends You Need to Know — Skill Up</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --wh: #ffffff;
+      --gd: #dfcc8c;
+      --bu: rgb(51, 142, 205);
+      --pk: #d66ba1;
+      --ye: #FFD700;
+      --bg-dark: #07101a;
+      --text: #0b2230;
+      --muted: #556b78;
+      --card-radius: 18px;
+      --card-shadow: 0 20px 50px rgba(3,9,14,.45);
+      --glass: rgba(255,255,255,0.96);
+    }
+
+    html,body{height:100%;margin:0}
+    body{
+      margin: 0;
+      padding: 0;
+      font-family: Poppins, sans-serif;
+      background: linear-gradient(120deg, var(--bu), var(--gd), var(--ye));
+      background-size: 400% 400%;
+      animation: bgMove 10s ease-in-out infinite;
+    }
+
+    .animated-bg {
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background: radial-gradient(circle at 10% 20%,var(--pk), transparent 10%),
+                  radial-gradient(circle at 85% 10%, rgba(214,107,161,0.09), transparent 12%),
+                  radial-gradient(circle at 50% 85%, rgba(223,204,140,0.08), transparent 15%);
+      background-blend-mode: screen;
+      animation: floatBG 18s ease-in-out infinite;
+      filter: blur(18px) saturate(1.05);
+    }
+
+    @keyframes floatBG {
+      0% { transform: translateY(0) rotate(0deg) scale(1); }
+      50% { transform: translateY(-30px) rotate(2deg) scale(1.02); }
+      100% { transform: translateY(0) rotate(0deg) scale(1); }
+    }
+
+    .animated-gradient {
+      position:fixed;
+      inset:0;
+      z-index:0;
+      background: linear-gradient(60deg, rgba(51,142,205,0.06), rgba(214,107,161,0.05), rgba(223,204,140,0.06));
+      background-size: 300% 300%;
+      animation: shiftGradient 14s ease-in-out infinite;
+      mix-blend-mode: screen;
+      pointer-events:none;
+      opacity:0.9;
+    }
+    @keyframes shiftGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .wrap {
+      width:100%;
+      max-width:1100px;
+      z-index:2;
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      gap:30px;
+      align-items:start;
+      align-content:start;
+            margin-left: 21rem;
+
+    }
+
+    .article {
+      background: var(--glass);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      padding: 36px;
+      border: 1px solid rgba(12,20,26,0.04);
+      backdrop-filter: blur(6px);
+      line-height:1.7;
+      color: #0b2230;
+    }
+
+    .article header {
+      margin-bottom:18px;
+    }
+    .kicker {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:12px;
+    }
+    .kicker .dot {
+      width:10px;height:10px;border-radius:50%;
+      background: linear-gradient(90deg,var(--bu),var(--gd));
+      box-shadow:0 8px 18px rgba(51,142,205,0.12);
+    }
+    h1 {
+      margin:4px 0 10px 0;
+      font-size:28px;
+      color:var(--text);
+      line-height:1.12;
+    }
+    .meta {
+      color:var(--muted);
+      font-size:13px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-bottom:20px;
+    }
+
+    .article p{margin:14px 0;color:#122833;font-size:15.5px}
+    .article h2{font-size:20px;margin:18px 0 10px;color:#07232a}
+    .article ul{margin:10px 0 18px 20px}
+    .article ol{margin:10px 0 18px 20px}
+    .article li{margin:8px 0;color:#15313a}
+    .callout{
+      background: linear-gradient(180deg, rgba(223,204,140,0.06), rgba(51,142,205,0.025));
+      border-left:4px solid var(--gd);
+      padding:14px 16px;
+      border-radius:8px;
+      margin:16px 0;
+      color:#0b2b36;
+      font-size:15px;
+    }
+
+    .exercise {
+      border-radius:10px;
+      padding:12px;
+      background:rgba(7,16,26,0.02);
+      border:1px dashed rgba(7,16,26,0.06);
+      margin:12px 0 18px;
+      color:#0a2a30;
+    }
+
+    aside.side {
+      background: rgba(255,255,255,0.95);
+      padding:18px;
+      border-radius:14px;
+      box-shadow: 0 12px 30px rgba(3,9,14,0.12);
+      border:1px solid rgba(12,20,26,0.04);
+      height:fit-content;
+    }
+    .side h3{margin:0 0 10px 0;font-size:16px;color:var(--text)}
+    .badge {display:inline-block;padding:8px 10px;border-radius:999px;background:linear-gradient(90deg,var(--bu),var(--gd));color:var(--wh);font-weight:600;font-size:13px;margin:6px 6px 6px 0}
+    .resource{margin:12px 0;padding:10px;border-radius:10px;background:rgba(7,16,26,0.02);font-size:14px}
+    .btn {
+      display:inline-block;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--gd),var(--bu));color:var(--bg-dark);text-decoration:none;font-weight:600;
+      box-shadow:0 8px 24px rgba(51,142,205,0.12);
+    }
+
+    .byline{margin-top:18px;color:var(--muted);font-size:13px}
+
+    @media (max-width:1024px){
+      .wrap{grid-template-columns: 1fr 320px;gap:20px;padding:0 18px}
+      h1{font-size:24px}
+    }
+    @media (max-width:800px){
+      .wrap{grid-template-columns: 1fr; padding:0 18px}
+      .animated-bg, .animated-gradient{display:block}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="animated-bg" aria-hidden="true"></div>
+  <div class="animated-gradient" aria-hidden="true"></div>
+
+  <div class="wrap" role="main">
+
+    <article class="article" aria-labelledby="article-title">
+      <header>
+        <div class="kicker"><span class="dot" aria-hidden="true"></span>AI & Machine Learning • Article</div>
+        <h1 id="article-title">AI & Machine Learning Trends You Need to Know</h1>
+        <div class="meta">
+          <div>By <strong>Skill Up Team</strong></div>
+          <div>•</div>
+          <div>Published Nov 25, 2025</div>
+          <div>•</div>
+          <div>Reading: 10 min</div>
+        </div>
+      </header>
+
+      <p>Artificial Intelligence and Machine Learning continue to transform industries worldwide. Staying ahead requires understanding the latest trends, tools, and frameworks shaping the AI landscape in 2025.</p>
+
+      <h2>1. Generative AI Explosion</h2>
+      <p>Generative AI models, from text to images and audio, are becoming mainstream. These models can create content, assist in programming, and enhance creative workflows.</p>
+      <div class="callout">Tip: Explore tools like GPT-5, MidJourney, and DALL·E for prototyping and experimentation.</div>
+      <ul>
+        <li>Practice generating text for chatbots or creative writing.</li>
+        <li>Use AI image generators to prototype design ideas.</li>
+        <li>Integrate generative AI in side projects.</li>
+      </ul>
+
+      <h2>2. Responsible AI & Ethics</h2>
+      <p>As AI adoption grows, ethical AI is critical. Bias detection, transparency, and explainability are no longer optional.</p>
+      <div class="callout">Tip: Learn about fairness metrics and model interpretability using libraries like SHAP and LIME.</div>
+
+      <h2>3. AutoML and Low-Code AI</h2>
+      <p>Automated Machine Learning (AutoML) platforms allow developers to build models with minimal coding. Low-code AI tools accelerate deployment and experimentation.</p>
+      <ul>
+        <li>Try Google Cloud AutoML, H2O.ai, or DataRobot for automated modeling.</li>
+        <li>Experiment with drag-and-drop AI pipelines.</li>
+      </ul>
+
+      <h2>4. Edge AI & TinyML</h2>
+      <p>Running AI models on devices at the edge (IoT, smartphones) reduces latency and reliance on cloud infrastructure. TinyML enables microcontrollers to perform inference locally.</p>
+      <div class="callout">Tip: Explore TensorFlow Lite and PyTorch Mobile for edge deployment.</div>
+
+      <h2>5. Multi-Modal AI Systems</h2>
+      <p>AI models that process multiple data types — text, images, audio — are becoming crucial. Multi-modal learning improves context understanding and decision-making.</p>
+
+      <h2>How to Stay Ahead</h2>
+      <ul>
+        <li>Follow AI research papers on arXiv and conferences like NeurIPS, ICML, and CVPR.</li>
+        <li>Join AI communities and participate in Kaggle competitions.</li>
+        <li>Work on small projects integrating multiple AI tools and datasets.</li>
+      </ul>
+
+      <h2>Recommended Resources</h2>
+      <div class="resource">Books: <em>"Artificial Intelligence: A Modern Approach"</em>, <em>"Deep Learning"</em> by Ian Goodfellow.</div>
+      <div class="resource">Courses: Coursera, Udacity, and fast.ai for hands-on AI/ML training.</div>
+      <div class="resource">Tools: PyTorch, TensorFlow, Jupyter Notebook, and AI model deployment platforms.</div>
+
+      <h2>Closing Thoughts</h2>
+      <p>AI and Machine Learning are evolving rapidly. Keeping skills current, experimenting with new tools, and understanding ethical implications will position you for success in 2025 and beyond.</p>
+
+      <p class="byline">If you found this helpful — share it with a colleague and try one AI trend this week. Want a workshop for your team? <a href="#" class="btn" style="margin-left:8px">Book a session</a></p>
+    </article>
+
+    <aside class="side" aria-label="Sidebar: Tips & Resources">
+      <h3>Quick Actions</h3>
+
+      <div style="margin:10px 0">
+        <span class="badge">Daily</span>
+        <span class="badge" style="background:linear-gradient(90deg,var(--pk),var(--bu))">Weekly</span>
+      </div>
+
+      <div class="resource"><strong>Experiment Drill</strong><br>Pick a trend and build a mini-project: generative AI, edge deployment, or multi-modal model.</div>
+
+      <div class="resource"><strong>Documentation Review</strong><br>Read official docs and follow tutorials for each tool or framework.</div>
+
+      <div class="resource"><strong>Reflection</strong><br>Write a 1-minute summary daily of what you learned and how to apply it.</div>
+
+      <h3 style="margin-top:16px">Further Reading</h3>
+      <div class="resource"><a href="#" class="btn" style="text-decoration:none">Download PDF Guide</a></div>
+
+      <div style="margin-top:12px;color:var(--muted);font-size:13px">
+        <strong>Author:</strong> Skill Up Team<br>
+        <strong>Estimated read:</strong> 10 minutes
+      </div>
+    </aside>
+
+  </div>
+
+</body>
+</html>
