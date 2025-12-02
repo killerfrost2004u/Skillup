@@ -1,10 +1,10 @@
 const teamMembers = [
-	{ name: "Luffy", role: "Founder" },
-	{ name: "Monkey D. Luffy", role: "Creative Director" },
-	{ name: "Luffy chan", role: "Lead Developer" },
-	{ name: "Lucy", role: "UX Designer" },
-	{ name: "Luffy kun", role: "Marketing Manager" },
-	{ name: "Monkey chan", role: "Product Manager" }
+	{ name: "Front-End Developer", role: "Web Development" },
+	{ name: "Back-End Developer", role: "Lead Server & Database" },
+	{ name: "Software Development ", role: "Full Stack Skills" },
+	{ name:"Python Programming", role: "Programming Basics"  },
+
+	
 ];
 
 const cards = document.querySelectorAll(".card");
