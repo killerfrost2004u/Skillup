@@ -1,0 +1,298 @@
+/* ========= COLORS ========= */
+:root {
+    --blue: #338ecd;
+    --blue2: #4f8fe8;
+    --yellow: #f7df1e;
+    --dark: #202020;
+    --white: #ffffff;
+
+    /* Python section colors (GUI / Basics / Backend) */
+    --html-color: #211562;   /* GUI - Python blue */
+    --css-color: #4b8bbe;    /* Basics - lighter blue */
+    --js-color: #4a883f;     /* Backend - Python yellow */
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* ========= GENERAL ========= */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Poppins, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue2) 40%, var(--yellow) 100%);
+    color: var(--white);
+}
+
+.header h1 {
+    text-align: center;
+    padding: 25px 0;
+    font-size: 42px;
+    text-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: auto;
+}
+
+/* ========= INTRO ========= */
+.intro h2,
+.section-title,
+.social-section h3 {
+    text-align: center;
+}
+
+.intro p {
+    width: 80%;
+    margin: 10px auto;
+    text-align: center;
+}
+
+/* Fade Animation */
+.fade-in { opacity: 0; animation: fade 2s forwards; }
+.delay1 { animation-delay: .4s; }
+.delay2 { animation-delay: .8s; }
+
+@keyframes fade { to { opacity:1; } }
+
+/* ========= CARDS ========= */
+.cards-section {
+    margin-top: 40px;
+}
+
+.cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;        /* بُعد بين الكروت */
+    flex-wrap: wrap;
+    margin-top: 25px;
+    padding-bottom: 30px;
+}
+
+.card {
+    width: 260px;
+    height: 330px;
+    perspective: 1000px;
+    transition: transform .3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* flip */
+.card-inner {
+    width: 100%;
+    height: 100%;
+    transition: transform .8s;
+    transform-style: preserve-3d;
+}
+
+.card:hover .card-inner {
+    transform: rotateY(180deg);
+}
+
+/* sides */
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    backface-visibility: hidden;
+    text-align: center;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* front colors + glow (GUI / Basics / Backend) */
+.html-card .card-front {
+    background: var(--html-color);
+    color: white;
+    box-shadow: 0 0 25px rgba(55,118,171,0.7);
+}
+.css-card .card-front {
+    background: var(--css-color);
+    color: white;
+    box-shadow: 0 0 25px rgba(75,139,190,0.7);
+}
+.js-card .card-front {
+    background: var(--js-color);
+    color: black;
+    box-shadow: 0 0 25px rgba(255,211,67,0.7);
+}
+
+/* logo animation */
+.logo {
+    width: 80px;
+    animation: floatLogo 3s infinite ease-in-out;
+}
+
+@keyframes floatLogo {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-8px); }
+    100% { transform: translateY(0); }
+}
+
+/* back side */
+.card-back {
+    background: var(--dark);
+    color: white;
+    transform: rotateY(180deg);
+    box-shadow: 0 0 18px rgba(0,0,0,0.4);
+}
+
+/* BUTTON */
+.btn {
+    background: white;
+    padding: 10px 25px;
+    margin-top: 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+
+/* ========= SOCIAL MEDIA ========= */
+.social-section {
+    margin-top: 50px;
+    text-align: center;
+    position: relative;
+    z-index: 5; /* فوق الموجة */
+}
+
+.social-icons a {
+    font-size: 26px;
+    margin: 0 10px;
+    color: var(--white);
+    transition: .3s;
+}
+
+.social-icons a:hover {
+    transform: scale(1.2);
+    color: #000;
+}
+
+/* ========= WAVES ========= */
+.wave-footer {
+    margin-top: 200px;
+    position: relative;
+    height: 350px;
+    overflow: hidden;
+}
+
+.waves {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.wave {
+    position: absolute;
+    width: 180%;
+    left: -30%;
+}
+
+/* wave color + movement */
+.wave path {
+    fill: rgba(255,255,255,0.7);
+    animation: waveMove 8s ease-in-out infinite;
+}
+
+.wave2 path { animation-delay: 1.5s; opacity: .45; }
+.wave3 path { animation-delay: 3s;   opacity: .30; }
+
+@keyframes waveMove {
+    0%   { transform: translateX(0) translateY(0); }
+    50%  { transform: translateX(-50px) translateY(-12px); }
+    100% { transform: translateX(0) translateY(0); }
+}
+
+/* ========= SCROLL TO TOP BUTTON ========= */
+.scroll-top {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    backdrop-filter: blur(4px);
+}
+
+/* ========= RESPONSIVE ========= */
+@media (max-width: 768px) {
+    .intro p {
+        width: 90%;
+        font-size: 16px;
+    }
+
+    .cards-container {
+        gap: 20px;
+    }
+
+    .card {
+        width: 230px;
+        height: 310px;
+    }
+
+    .wave-footer {
+        height: 60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 30px;
+    }
+
+    .section-title {
+        font-size: 24px;
+    }
+
+    .wave-footer {
+        height: 15px;
+    }
+}
+
+/* ========= HOME BUTTON ========= */
+.home-btn {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    width: 45px;
+    height: 45px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #000;
+    font-size: 22px;
+    text-decoration: none;
+    box-shadow: 0 0 12px rgba(0,0,0,0.25);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    transition: 0.3s;
+}
+
+.home-btn:hover {
+    transform: scale(1.12);
+    background: white;
+    box-shadow: 0 0 20px rgba(255,255,255,0.7);
+}
