@@ -189,56 +189,8 @@ dotlottie-wc {
   padding-bottom: 0.5rem;
 }
 
-.header .icons div {
-  color: #020202;
-  cursor: pointer;
-  font-size: 2.5rem;
-  margin-left: 2rem;
-}
 
-.header .icons div:hover {
-  color: var(--gd);
-}
 
-.header .icons div {
-  color: var(--wh);
-  cursor: pointer;
-  font-size: 2.5rem;
-  margin-left: 2rem;
-}
-.header .icons div:hover {
-  color: var(--gd);
-}
-.header .search-form {
-  position: absolute;
-  top: 115%;
-  right: 7%;
-  background: #fff;
-  width: 50rem;
-  height: 5rem;
-  display: flex;
-  align-items: center;
-  transform: scaleY(0);
-  transform-origin: top;
-}
-.header .search-form.active {
-  transform: scaleY(1);
-}
-.header .search-form input {
-  height: 100%;
-  width: 100%;
-  font-size: 1.6rem;
-  color: var(--gd);
-  padding: 1rem;
-  text-transform: none;
-}
-
-.header .search-form label {
-  cursor: pointer;
-  font-size: 2.2rem;
-  margin-right: 1.5rem;
-  color: var(--gd);
-}
 
 /*HOME SEC*/
 
