@@ -1,8 +1,8 @@
 /* ========= COLORS ========= */
 :root {
-    --blue: #338ecd;
-    --blue2: #4f8fe8;
-    --yellow: #f7df1e;
+    --blue:rgb(51, 142, 205);
+    --blue2: rgb(51, 142, 205);
+    --yellow: #dfcc8c;
     --dark: #202020;
     --white: #ffffff;
 
@@ -141,20 +141,20 @@ body {
 
 /* back side */
 .card-back {
-    background: var(--dark);
-    color: white;
+    background: var(--yellow);
+    color:white;
     transform: rotateY(180deg);
     box-shadow: 0 0 18px rgba(0,0,0,0.4);
 }
 
 /* BUTTON */
 .btn {
-    background: white;
+    background:var(--blue2);
     padding: 10px 25px;
     margin-top: 12px;
     border-radius: 10px;
     text-decoration: none;
-    color: black;
+    color:white;
     font-weight: bold;
 }
 

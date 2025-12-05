@@ -1,15 +1,15 @@
 /* ========= COLORS ========= */
 :root {
-    --blue: #338ecd;
-    --blue2: #4f8fe8;
-    --yellow: #f7df1e;
+    --blue: #dfcc8c;
+    --blue2: rgb(51, 142, 205)           ;
+    --yellow:#dfcc8c;
     --dark: #202020;
     --white: #ffffff;
 
     /* Python section colors (GUI / Basics / Backend) */
     --html-color: #211562;   /* GUI - Python blue */
-    --css-color: #4b8bbe;    /* Basics - lighter blue */
-    --js-color: #4a883f;     /* Backend - Python yellow */
+    --css-color: rgb(184, 66, 105);    /* Basics - lighter blue */
+    --js-color: #3f887c;     /* Backend - Python yellow */
 }
 
 html {
@@ -145,7 +145,7 @@ body {
 
 /* back side */
 .card-back {
-    background: var(--dark);
+    background: var(--yellow);
     color: white;
     transform: rotateY(180deg);
     box-shadow: 0 0 18px rgba(0,0,0,0.4);
@@ -153,12 +153,12 @@ body {
 
 /* BUTTON */
 .btn {
-    background: white;
+    background:var(--blue2);
     padding: 10px 25px;
     margin-top: 12px;
     border-radius: 10px;
     text-decoration: none;
-    color: black;
+    color: white;
     font-weight: bold;
 }
 

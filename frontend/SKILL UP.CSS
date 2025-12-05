@@ -6,6 +6,7 @@
   --bu: rgb(51, 142, 205);
   --pk: #d66ba1;
   --ye:  #FFD700 ;
+  --ثء: rgb(13, 47, 72);
 }
 
 /*
@@ -1197,9 +1198,11 @@ background-position: top center;
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: url("trackk.jpg");
+  background: url("Gemini_Generated_Image_rl14kzrl14kzrl14\ \(1\).png");
   background-size: contain;
   background-position: center;
+  margin:  60px; 
+ border-radius: 50px;
 }
 .track .btn {
   display: inline-block;
@@ -1232,7 +1235,9 @@ background-position: top center;
 .track .contact h3 {
   font-size: 6rem;
   text-transform: uppercase;
-  color: var(--bu);
+  color: var(--gd);
+  text-shadow: 0 0 5px var(--gd), 0 0 10px var(--gd), 0 0 20px var(--gd), 0 0 30px var(--gs);
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
 .track .contact p {
@@ -1240,7 +1245,9 @@ background-position: top center;
   text-transform: lighter;
   line-height: 1.8;
   padding: 1rem 0;
-  color: var(--gd);
+  color: var(--wh);
+  text-shadow: 0 0 5px var(--gd), 0 0 10px var(--gd), 0 0 20px var(--gd), 0 0 30px var(--gs);
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
 /* TARCK end */

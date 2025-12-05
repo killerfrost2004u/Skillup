@@ -1,9 +1,9 @@
 /* ========= COLORS ========= */
 :root {
-    --blue: #338ecd;
-    --blue2: #4f8fe8;
-    --yellow: #f7df1e;
-    --dark: #636a06;
+    --blue: rgb(51, 142, 205);
+    --blue2:  rgb(51, 142, 205);
+    --yellow: #dfcc8c;
+    --dark: #dfcc8c;
     --white: #ffffff;
 
     --html-color: #e44d26;
@@ -152,12 +152,12 @@ body {
 
 /* BUTTON */
 .btn {
-    background: white;
+    background:  rgb(51, 142, 205);
     padding: 10px 25px;
     margin-top: 12px;
     border-radius: 10px;
     text-decoration: none;
-    color: black;
+    color:white;
     font-weight: bold;
 }
 
@@ -178,7 +178,7 @@ body {
 
 .social-icons a:hover {
     transform: scale(1.2);
-    color: #000;
+    color:var(--dark);
 }
 
 /* ========= WAVES ========= */
