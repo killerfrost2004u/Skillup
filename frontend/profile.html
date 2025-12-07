@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Up - Student Profile</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Your CSS file -->
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <style>
+        :root {
+    --wh: #ffffff;
+    --gd: #dfcc8c;
+    --bu: rgb(51, 142, 205);
+    --pk: #d66ba1;
+    --ye: #FFD700;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f5f5f5; /* Light gray for subtle contrast */
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.profile-header {
+    background-color: var(--wh);
+    padding: 24px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin: 16px;
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.profile-pic {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--gd);
+}
+
+.info h1 {
+    margin: 0;
+    color: var(--bu);
+}
+
+.bio {
+    font-style: italic;
+    color: #666;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Main content wider on desktop */
+    gap: 24px;
+    padding: 16px;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr; /* Stack on tablet/mobile */
+    }
+}
+
+.course-progress, .stats, .reminders {
+    background-color: var(--wh);
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--progress);
+    background-color: var(--gd);
+    transition: width 0.3s ease;
+}
+
+.stat-item, .reminder-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.btn-primary {
+    background-color: var(--bu);
+    color: var(--wh);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #2e8bc0; /* Darker blue */
+}
+    </style>
+    <header class="profile-header">
+        <div class="profile-card">
+            <img src="profile-pic.jpg" alt="Student Profile Picture" class="profile-pic">
+            <div class="info">
+                <h1>John Doe</h1>
+                <p><i class="fas fa-envelope"></i> john.doe@email.com</p>
+                <p><i class="fas fa-phone"></i> +1 (123) 456-7890</p>
+                <p class="bio">Passionate learner with a focus on web development and data science.</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="course-progress">
+            <h2>Course Progress</h2>
+            <div class="course-card">
+                <h3>Introduction to Web Development</h3>
+                <div class="progress-bar" style="--progress: 75%;"><span>75% Complete</span></div>
+                <p>Status: In Progress</p>
+            </div>
+            <div class="course-card">
+                <h3>Data Science Basics</h3>
+                <div class="progress-bar" style="--progress: 100%;"><span>100% Complete</span></div>
+                <p>Status: Completed</p>
+                <button class="btn-primary">Download Certificate</button>
+            </div>
+            <!-- Add more courses as needed -->
+        </section>
+
+        <aside class="sidebar">
+            <section class="stats">
+                <h2>Dashboard Stats</h2>
+                <div class="stat-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Total Learning Hours: 120</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-book"></i>
+                    <span>Completed Lessons: 45</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Quizzes Attempted: 20</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-trophy" style="color: var(--ye);"></i>
+                    <span>Points: 1500</span>
+                </div>
+            </section>
+
+            <section class="reminders">
+                <h2>Upcoming Lessons & Reminders</h2>
+                <div class="reminder-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Advanced CSS Techniques - Tomorrow at 10:00 AM</span>
+                </div>
+                <div class="reminder-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Quiz on Python Basics - Due Friday</span>
+                </div>
+            </section>
+        </aside>
+    </main>
+
+</body>
+</html>
