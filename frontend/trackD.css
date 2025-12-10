@@ -8,6 +8,7 @@
 
 body {
   background: linear-gradient(135deg,var(--gd),var(--bu));
+  cursor: url("pointer (4).png") 16 16, auto;
 }
 
 

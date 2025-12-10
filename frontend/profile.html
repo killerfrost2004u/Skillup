@@ -1,187 +1,328 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skill Up - Student Profile</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Your CSS file -->
-    <!-- Include Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <style>
-        :root {
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luxury Interactive Student Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+:root {
     --wh: #ffffff;
     --gd: #dfcc8c;
     --bu: rgb(51, 142, 205);
     --pk: #d66ba1;
     --ye: #FFD700;
+    --gdg: #dfcc8ca9;
 }
-
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f5f5f5; /* Light gray for subtle contrast */
-    margin: 0;
-    padding: 0;
-    color: #333;
+  margin: 0;
+  padding: 0;
+  font-family: Poppins, sans-serif;
+  background: linear-gradient(85deg, var(--bu), var(--gd), var(--pk));
+  background-size: 400% 400%;
+  
+  cursor: url("pointer (4).png") 16 16, auto;
+
 }
 
-.profile-header {
-    background-color: var(--wh);
-    padding: 24px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    margin: 16px;
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-.profile-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+.card {
+    background: rgba(240, 237, 237, 0.243);
+    backdrop-filter: blur(18px);
+    padding: 28px;
+    border-radius: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 20px  rgba(240, 237, 237, 0.165);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.4);
 }
 
 .profile-pic {
-    width: 80px;
-    height: 80px;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
-    border: 3px solid var(--gd);
+    border: 4px solid var(--gd);
+    object-fit: cover;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    cursor: pointer;
 }
-
-.info h1 {
-    margin: 0;
-    color: var(--bu);
+.profile-pic:hover {
+    transform: scale(1.08);
+    filter: brightness(1.2);
 }
-
-.bio {
-    font-style: italic;
-    color: #666;
+input, button, textarea {
+    padding: 12px 16px;
+    margin: 6px 0;
+    border-radius: 16px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    transition: background 0.3s, transform 0.2s;
 }
-
-.main-content {
+input:focus, textarea:focus {
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.02);
+}
+button {
+    background: var(--bu);
+    color: #333;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+button:hover {
+    background:var(--gdg);
+    color: #fff;
+}
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+li {
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+li:hover {
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.02);
+}
+textarea {
+    width: 100%;
+    resize: vertical;
+}
+.grid {
+    width: 90%;
+    max-width: 1100px;
+    margin: auto;
+    margin-top: 30px;
     display: grid;
-    grid-template-columns: 2fr 1fr; /* Main content wider on desktop */
-    gap: 24px;
-    padding: 16px;
+    grid-template-columns: 2fr 1fr;
+    gap: 28px;
 }
+@media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+}
+ h3 , p {
+    color: var(--wh);
+    margin-bottom: 12px;
+}
+h1,h2{
+    color: var(--gd); 
+}
+.course-options {
+    background: rgba(255,255,255,0.08);
+    padding: 12px 16px;
+    border-radius: 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+.course-options:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.02);
+}
+.student-info {
+    background: rgba(255,255,255,0.15);
+    padding: 16px 24px;
+    border-radius: 20px;
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.student-info input {
+    width: 100%;
+    margin: 4px 0;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 8px;
+}
+.edit-btn {
+    background: var(--bu);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 16px;
+    padding: 10px 16px;
+    cursor: pointer;
+    margin-top: 12px;
+    display: inline-block;
+}
+.edit-btn:hover {
+    background: var(--gdg);
+}
+[contenteditable="true"] {
+    border-bottom: 1px dashed rgba(255,255,255,0.5);
+    padding: 2px 4px;
+}
+[contenteditable="false"] {
+    border: none;
+}
+</style>
+</head>
+<body>
 
-@media (max-width: 768px) {
-    .main-content {
-        grid-template-columns: 1fr; /* Stack on tablet/mobile */
+<!-- PROFILE HEADER -->
+<div class="card" style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
+    <div style="position: relative;">
+        <img src="profile.jpg" class="profile-pic" id="profilePic" onclick="if(editMode) document.getElementById('uploadInput').click()">
+        <input type="file" id="uploadInput" style="display:none" accept="image/*" onchange="changeProfile(event)">
+    </div>
+    <div style="flex:1; min: width 50px;">
+        <h2 id="studentName" contenteditable="false">dina</h2>
+        <p class="bio" id="studentBio" contenteditable="false">Web Development Learner • Data Science Focus</p>
+       <div class="card student-card">
+        <div class="student-info">
+            <p><strong>Age:</strong> <input type="number" id="ageInput" value="20" disabled></p>
+            <p><strong>Year:</strong> <input type="text" id="yearInput" value="Year" disabled></p>
+            <p><strong>Major:</strong> <input type="text" id="majorInput" value="Computer " disabled></p>
+            <p><strong>University:</strong> <input type="text" id="univInput" value=" College" disabled></p>
+        </div>
+        </div>
+        <button class="edit-btn" id="editBtn" onclick="toggleEdit()">Edit YOUR INFO</button>
+    </div>
+</div>
+
+<div class="grid">
+
+<!-- LEFT SIDE -->
+<div>
+    <div class="card">
+        <h3>Available Courses</h3>
+        <div id="availableCourses"></div>
+    </div>
+
+    <div class="card">
+        <h3>Waiting List Courses</h3>
+        <input type="text" id="newCourse" placeholder="Add course to waiting list" disabled>
+        <button onclick="addCourse()" id="addCourseBtn" disabled>Add Course</button>
+        <ul id="courseList"></ul>
+    </div>
+
+    <div class="card">
+        <h3>Notes</h3>
+        <textarea id="noteText" rows="3" placeholder="Write your note..." disabled></textarea>
+        <button onclick="addNote()" id="addNoteBtn" disabled>Add Note</button>
+        <ul id="notesList"></ul>
+    </div>
+</div>
+
+<!-- RIGHT SIDE -->
+<div>
+    <div class="card">
+        <h3>Course Progress</h3>
+        <input type="text" id="progressCourse" placeholder="Course name" disabled>
+        <input type="number" id="progressValue" placeholder="Progress %" min="0" max="100" disabled>
+        <button onclick="updateProgress()" id="updateProgressBtn" disabled>Update Progress</button>
+        <ul id="progressList"></ul>
+    </div>
+
+    <div class="card" style="margin-top:24px; text-align:center;">
+        <h3>Rank </h3>
+        <h1>#07 </h1>
+        <p>Top Student This Month</p>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+        <h3>Achievements</h3>
+        <p>🏆 1500 Points</p>
+        <p>📘 40 Lessons Completed</p>
+        <p>⏳ 120 Learning Hours</p>
+    </div>
+</div>
+
+</div>
+
+<script>
+let courseList = document.getElementById('courseList');
+let notesList = document.getElementById('notesList');
+let progressList = document.getElementById('progressList');
+let availableCourses = document.getElementById('availableCourses');
+let profilePic = document.getElementById('profilePic');
+let editMode = false;
+
+const courses = ['HTML', 'CSS', 'JAVA SCRIPT', 'Python BASICS', 'GUI','NODE JS','PHP','TESTING','FULL STACK'];
+courses.forEach(course => {
+    let div = document.createElement('div');
+    div.className = 'course-options';
+    div.textContent = course;
+    div.onclick = () => {
+        if(editMode) document.getElementById('newCourse').value = course;
+    };
+    availableCourses.appendChild(div);
+});
+
+function addCourse(){
+    if(!editMode) return;
+    let val = document.getElementById('newCourse').value;
+    if(val.trim() !== ''){
+        let li = document.createElement('li');
+        li.textContent = val;
+        li.onclick = () => li.remove();
+        courseList.appendChild(li);
+        document.getElementById('newCourse').value = '';
     }
 }
 
-.course-progress, .stats, .reminders {
-    background-color: var(--wh);
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin-bottom: 16px;
+function addNote(){
+    if(!editMode) return;
+    let val = document.getElementById('noteText').value;
+    if(val.trim() !== ''){
+        let li = document.createElement('li');
+        li.textContent = val;
+        li.onclick = () => li.remove();
+        notesList.appendChild(li);
+        document.getElementById('noteText').value = '';
+    }
 }
 
-.progress-bar {
-    width: 100%;
-    height: 20px;
-    background-color: #e0e0e0;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
+function updateProgress(){
+    if(!editMode) return;
+    let course = document.getElementById('progressCourse').value;
+    let value = document.getElementById('progressValue').value;
+    if(course.trim() !== '' && value !== ''){
+        let li = document.createElement('li');
+        li.textContent = `${course}: ${value}%`;
+        li.onclick = () => li.remove();
+        progressList.appendChild(li);
+        document.getElementById('progressCourse').value = '';
+        document.getElementById('progressValue').value = '';
+    }
 }
 
-.progress-bar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: var(--progress);
-    background-color: var(--gd);
-    transition: width 0.3s ease;
+function changeProfile(event){
+    if(!editMode) return;
+    const reader = new FileReader();
+    reader.onload = function(){
+        profilePic.src = reader.result;
+    };
+    reader.readAsDataURL(event.target.files[0]);
 }
 
-.stat-item, .reminder-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+function toggleEdit(){
+    editMode = !editMode;
+    const editableElements = document.querySelectorAll('[contenteditable], input, textarea, button');
+    editableElements.forEach(el => {
+        if(el.id !== 'editBtn') el.disabled = !editMode;
+        if(el.hasAttribute('contenteditable')) el.contentEditable = editMode;
+    });
+    document.getElementById('editBtn').textContent = editMode ? 'Done' : 'Edit';
 }
-
-.btn-primary {
-    background-color: var(--bu);
-    color: var(--wh);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.btn-primary:hover {
-    background-color: #2e8bc0; /* Darker blue */
-}
-    </style>
-    <header class="profile-header">
-        <div class="profile-card">
-            <img src="profile-pic.jpg" alt="Student Profile Picture" class="profile-pic">
-            <div class="info">
-                <h1>John Doe</h1>
-                <p><i class="fas fa-envelope"></i> john.doe@email.com</p>
-                <p><i class="fas fa-phone"></i> +1 (123) 456-7890</p>
-                <p class="bio">Passionate learner with a focus on web development and data science.</p>
-            </div>
-        </div>
-    </header>
-
-    <main class="main-content">
-        <section class="course-progress">
-            <h2>Course Progress</h2>
-            <div class="course-card">
-                <h3>Introduction to Web Development</h3>
-                <div class="progress-bar" style="--progress: 75%;"><span>75% Complete</span></div>
-                <p>Status: In Progress</p>
-            </div>
-            <div class="course-card">
-                <h3>Data Science Basics</h3>
-                <div class="progress-bar" style="--progress: 100%;"><span>100% Complete</span></div>
-                <p>Status: Completed</p>
-                <button class="btn-primary">Download Certificate</button>
-            </div>
-            <!-- Add more courses as needed -->
-        </section>
-
-        <aside class="sidebar">
-            <section class="stats">
-                <h2>Dashboard Stats</h2>
-                <div class="stat-item">
-                    <i class="fas fa-clock"></i>
-                    <span>Total Learning Hours: 120</span>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-book"></i>
-                    <span>Completed Lessons: 45</span>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-question-circle"></i>
-                    <span>Quizzes Attempted: 20</span>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-trophy" style="color: var(--ye);"></i>
-                    <span>Points: 1500</span>
-                </div>
-            </section>
-
-            <section class="reminders">
-                <h2>Upcoming Lessons & Reminders</h2>
-                <div class="reminder-item">
-                    <i class="fas fa-calendar"></i>
-                    <span>Advanced CSS Techniques - Tomorrow at 10:00 AM</span>
-                </div>
-                <div class="reminder-item">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Quiz on Python Basics - Due Friday</span>
-                </div>
-            </section>
-        </aside>
-    </main>
+</script>
 
 </body>
 </html>

@@ -11,7 +11,9 @@
         transform: translate3d(0, 0, 1px) rotate(360deg);
     }
 }
-
+body{
+  cursor: url("pointer (4).png") 16 16, auto;
+}
 .background {
     position: fixed;
     width: 100vw;

@@ -23,6 +23,7 @@ body{
     align-items: center;
     min-height: 100vh;
     background: linear-gradient(90deg,var(--wh),var(--bu));
+    cursor: url("pointer (4).png") 16 16, auto;
 }
 
 .container{
