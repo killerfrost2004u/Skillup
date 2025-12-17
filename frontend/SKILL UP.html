@@ -818,7 +818,58 @@ var swiper = new Swiper('.blog-slider', {
   
 </footer>
  <!-- ENDf ffffoooooooooooooooooottttttttttttttteeeeeeeeeeeeeeeeeeeeeeeeerrrrrrrrrr content -->
+<!--message box style and contact section-->
+<script>
+let messageBox = document.createElement('div');
+messageBox.id = 'message-box';
+messageBox.style.position = 'fixed';
+messageBox.style.top = '20px';
+messageBox.style.left = '50%';
+messageBox.style.transform = 'translateX(-50%)';
+messageBox.style.padding = '15px 25px';
+messageBox.style.backgroundColor = 'rgb(51, 142, 205)'; // بيبي بلو
+messageBox.style.color = 'white';
+messageBox.style.fontSize = '16px';
+messageBox.style.borderRadius = '8px';
+messageBox.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+messageBox.style.zIndex = '1000';
+messageBox.style.display = 'none';
+document.body.appendChild(messageBox);
 
+function showMessage(msg, duration = 3000) {
+    messageBox.textContent = msg;
+    messageBox.style.display = 'block';
+    setTimeout(() => {
+        messageBox.style.display = 'none';
+    }, duration);
+}
+</script>
+<script>
+document.querySelector(".contact_form_submit").addEventListener("click", function (e) {
+    e.preventDefault();
+
+    const name = document.querySelector("input[placeholder='Name']").value;
+    const email = document.querySelector("input[placeholder='Email']").value;
+    const message = document.querySelector("textarea[placeholder='Message']").value;
+
+    fetch("http://127.0.0.1:5000/contact", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, email, message })
+    })
+    .then(res => res.json())
+    .then(data => {
+        showMessage(data.message);   //الرساله 
+    })
+    .catch(err => {
+        console.error(err);
+        showMessage("Failed to send message. Try again."); 
+    });
+});
+</script>
+<!--endddd-->
 
 
 

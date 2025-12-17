@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luxury Interactive Student Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+:root {
+    --wh: #ffffff;
+    --gd: #dfcc8c;
+    --bu: rgb(51, 142, 205);
+    --pk: #d66ba1;
+    --ye: #FFD700;
+    --gdg: #dfcc8ca9;
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Poppins, sans-serif;
+  background: linear-gradient(85deg, var(--bu), var(--gd), var(--pk));
+  background-size: 400% 400%;
+  
+  cursor: url("pointer (4).png") 16 16, auto;
+
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.card {
+    background: rgba(240, 237, 237, 0.243);
+    backdrop-filter: blur(18px);
+    padding: 28px;
+    border-radius: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 20px  rgba(240, 237, 237, 0.165);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+}
+
+.profile-pic {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 4px solid var(--gd);
+    object-fit: cover;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    cursor: pointer;
+}
+.profile-pic:hover {
+    transform: scale(1.08);
+    filter: brightness(1.2);
+}
+input, button, textarea {
+    padding: 12px 16px;
+    margin: 6px 0;
+    border-radius: 16px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    transition: background 0.3s, transform 0.2s;
+}
+input:focus, textarea:focus {
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.02);
+}
+button {
+    background: var(--bu);
+    color: #333;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+button:hover {
+    background:var(--gdg);
+    color: #fff;
+}
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+li {
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+li:hover {
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.02);
+}
+textarea {
+    width: 100%;
+    resize: vertical;
+}
+.grid {
+    width: 90%;
+    max-width: 1100px;
+    margin: auto;
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 28px;
+}
+@media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+}
+ h3 , p {
+    color: var(--wh);
+    margin-bottom: 12px;
+}
+h1,h2{
+    color: var(--gd); 
+}
+.course-options {
+    background: rgba(255,255,255,0.08);
+    padding: 12px 16px;
+    border-radius: 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+.course-options:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.02);
+}
+.student-info {
+    background: rgba(255,255,255,0.15);
+    padding: 16px 24px;
+    border-radius: 20px;
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.student-info input {
+    width: 100%;
+    margin: 4px 0;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 8px;
+}
+.edit-btn {
+    background: var(--bu);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 16px;
+    padding: 10px 16px;
+    cursor: pointer;
+    margin-top: 12px;
+    display: inline-block;
+}
+.edit-btn:hover {
+    background: var(--gdg);
+}
+[contenteditable="true"] {
+    border-bottom: 1px dashed rgba(255,255,255,0.5);
+    padding: 2px 4px;
+}
+[contenteditable="false"] {
+    border: none;
+}
+</style>
+</head>
+<body>
+<!-- PROFILE HEADER -->
+<div class="card" style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
+    <div style="position: relative;">
+        <img src="user.jpg" class="profile-pic" id="profilePic" onclick="if(editMode) document.getElementById('uploadInput').click()">
+        <input type="file" id="uploadInput" style="display:none" accept="image/*" onchange="changeProfile(event)">
+    </div>
+    <div style="flex:1; min: width 50px;">
+        <h2 id="studentName" contenteditable="false"></h2>
+            <p id="profile-email">user@example.com</p>
+       <div class="card student-card">
+        <div class="student-info">
+            <p><strong>Age:</strong> <input type="number" id="ageInput" value="20" disabled></p>
+            <p><strong>Year:</strong> <input type="text" id="yearInput" value="Year" disabled></p>
+            <p><strong>Major:</strong> <input type="text" id="majorInput" value="Computer " disabled></p>
+            <p><strong>University:</strong> <input type="text" id="univInput" value=" College" disabled></p>
+        </div>
+        </div>
+        <button class="edit-btn" id="editBtn" onclick="toggleEdit()">Edit YOUR INFO</button>
+        <button class="edit-btn" id="logout-link">Logout</button>
+
+    </div>
+</div>
+
+<div class="grid">
+
+<!-- LEFT SIDE -->
+<div>
+    <div class="card">
+        <h3>Available Courses</h3>
+        <div id="availableCourses"></div>
+    </div>
+
+    <div class="card">
+        <h3>Waiting List Courses</h3>
+        <input type="text" id="newCourse" placeholder="Add course to waiting list" disabled>
+        <button onclick="addCourse()" id="addCourseBtn" disabled>Add Course</button>
+        <ul id="courseList"></ul>
+    </div>
+
+    <div class="card">
+        <h3>Notes</h3>
+        <textarea id="noteText" rows="3" placeholder="Write your note..." disabled></textarea>
+        <button onclick="addNote()" id="addNoteBtn" disabled>Add Note</button>
+        <ul id="notesList"></ul>
+    </div>
+</div>
+
+<!-- RIGHT SIDE -->
+<div>
+    <div class="card">
+        <h3>Course Progress</h3>
+        <input type="text" id="progressCourse" placeholder="Course name" disabled>
+        <input type="number" id="progressValue" placeholder="Progress %" min="0" max="100" disabled>
+
+        <button onclick="updateProgress()" id="updateProgressBtn" disabled>Update Progress</button>
+        <ul id="progressList"></ul>
+    </div>
+
+    <div class="card" style="margin-top:24px; text-align:center;">
+        <h3>Rank </h3>
+        <h1>#07 </h1>
+        <p>Top Student This Month</p>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+        <h3>Achievements</h3>
+        <p>🏆 1500 Points</p>
+        <p>📘 40 Lessons Completed</p>
+        <p>⏳ 120 Learning Hours</p>
+    </div>
+</div>
+
+</div>
+<script>
+let courseList = document.getElementById('courseList');
+let notesList = document.getElementById('notesList');
+let availableCourses = document.getElementById('availableCourses');
+let profilePic = document.getElementById('profilePic');
+let editMode = false;
+
+// --- Load saved user data from localStorage ---
+let userData = JSON.parse(localStorage.getItem('user')) || {
+    name: 'User Name',
+    email: 'user@example.com',
+    profile_image: 'user.jpg',
+    age: 20,
+    year: 'Year',
+    major: 'Computer',
+    college: 'College'
+};
+
+document.getElementById('studentName').textContent = userData.name;
+document.getElementById('profile-email').textContent = userData.email;
+profilePic.src = userData.profile_image;
+
+document.getElementById('ageInput').value = userData.age;
+document.getElementById('yearInput').value = userData.year;
+document.getElementById('majorInput').value = userData.major;
+document.getElementById('univInput').value = userData.college;
+
+// --- Courses list ---
+const courses = ['HTML', 'CSS', 'JAVA SCRIPT', 'Python BASICS', 'GUI','NODE JS','PHP','TESTING','FULL STACK'];
+courses.forEach(course => {
+    let div = document.createElement('div');
+    div.className = 'course-options';
+    div.textContent = course;
+    div.onclick = () => {
+        if(editMode) document.getElementById('newCourse').value = course;
+    };
+    availableCourses.appendChild(div);
+});
+
+// --- Functions ---
+function addCourse(){
+    if(!editMode) return;
+    let val = document.getElementById('newCourse').value;
+    if(val.trim() !== ''){
+        let li = document.createElement('li');
+        li.textContent = val;
+        li.onclick = () => { li.remove(); saveCourses(); };
+        courseList.appendChild(li);
+        document.getElementById('newCourse').value = '';
+        saveCourses();
+    }
+}
+
+function addNote(){
+    if(!editMode) return;
+    let val = document.getElementById('noteText').value;
+    if(val.trim() !== ''){
+        let li = document.createElement('li');
+        li.textContent = val;
+        li.onclick = () => { li.remove(); saveNotes(); };
+        notesList.appendChild(li);
+        document.getElementById('noteText').value = '';
+        saveNotes();
+    }
+}
+
+function updateProgress(){
+    if(!editMode) return;
+    let course = document.getElementById('progressCourse').value;
+    let value = document.getElementById('progressValue').value;
+    if(course.trim() !== '' && value !== ''){
+        let li = document.createElement('li');
+        li.textContent = `${course}: ${value}%`;
+        li.onclick = () => { li.remove(); saveProgress(); };
+        progressList.appendChild(li);
+        document.getElementById('progressCourse').value = '';
+        document.getElementById('progressValue').value = '';
+        saveProgress();
+    }
+}
+
+function changeProfile(event){
+    if(!editMode) return;
+    const reader = new FileReader();
+    reader.onload = function(){
+        profilePic.src = reader.result;
+        saveUserData('profile_image', reader.result);
+    };
+    reader.readAsDataURL(event.target.files[0]);
+}
+
+// --- Edit mode toggle ---
+function toggleEdit() {
+    editMode = !editMode;
+    const editableElements = document.querySelectorAll('[contenteditable], input, textarea, button');
+    editableElements.forEach(el => {
+        if(el.id !== 'editBtn') el.disabled = !editMode;
+        if(el.hasAttribute('contenteditable')) el.contentEditable = editMode;
+    });
+    document.getElementById('editBtn').textContent = editMode ? 'Done' : 'Edit YOUR INFO';
+
+    if(!editMode){
+        // جمع البيانات وحفظها
+        const updatedData = {
+            name: document.getElementById('studentName').textContent,
+            email: document.getElementById('profile-email').textContent,
+            profile_image: profilePic.src,
+            age: parseInt(document.getElementById('ageInput').value),
+            year: document.getElementById('yearInput').value,
+            major: document.getElementById('majorInput').value,
+            college: document.getElementById('univInput').value,
+
+        };
+
+        fetch('http://localhost:5000/update-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            localStorage.setItem('user', JSON.stringify(updatedData));
+
+            // مهم: إعادة تعيين editMode بعد الحفظ
+            editMode = false;
+        })
+        .catch(err => console.log("Error updating profile:", err));
+    }
+}
+
+
+
+
+// --- Save data to localStorage ---
+function saveUserData(key, value){
+    let user = JSON.parse(localStorage.getItem('user')) || {};
+    user[key] = value;
+    localStorage.setItem('user', JSON.stringify(user));
+}
+
+// --- Load saved courses, notes, and progress ---
+function loadSavedData(){
+    let savedCourses = JSON.parse(localStorage.getItem('userCourses')) || [];
+    savedCourses.forEach(c => {
+        let li = document.createElement('li');
+        li.textContent = c;
+        li.onclick = () => { li.remove(); saveCourses(); };
+        courseList.appendChild(li);
+    });
+
+    let savedNotes = JSON.parse(localStorage.getItem('userNotes')) || [];
+    savedNotes.forEach(n => {
+        let li = document.createElement('li');
+        li.textContent = n;
+        li.onclick = () => { li.remove(); saveNotes(); };
+        notesList.appendChild(li);
+    });
+
+    let savedProgress = JSON.parse(localStorage.getItem('userProgress')) || [];
+    savedProgress.forEach(p => {
+        let li = document.createElement('li');
+        li.textContent = p;
+        li.onclick = () => { li.remove(); saveProgress(); };
+        progressList.appendChild(li);
+    });
+}
+
+// --- Save helper functions ---
+function saveCourses(){
+    let arr = Array.from(courseList.querySelectorAll('li')).map(li => li.textContent);
+    localStorage.setItem('userCourses', JSON.stringify(arr));
+}
+function saveNotes(){
+    let arr = Array.from(notesList.querySelectorAll('li')).map(li => li.textContent);
+    localStorage.setItem('userNotes', JSON.stringify(arr));
+}
+function saveProgress(){
+    let arr = Array.from(progressList.querySelectorAll('li')).map(li => li.textContent);
+    localStorage.setItem('userProgress', JSON.stringify(arr));
+}
+
+// --- Initialize ---
+loadSavedData();
+
+// --- Logout Functionality ---
+// Logout دايمًا شغال
+document.getElementById('logout-link').addEventListener('click', () => {
+    if(editMode) {
+        alert("Finish editing your profile before logging out!");
+        return; // ما يعملش logout لو في وضع التعديل
+    }
+
+    // --- Logout عادي لو مش في Edit Mode ---
+    localStorage.removeItem('user');
+    localStorage.removeItem('userCourses');
+    localStorage.removeItem('userNotes');
+    localStorage.removeItem('userProgress');
+
+    // إعادة ضبط الصفحة للبروفايل الافتراضي
+    document.getElementById('studentName').textContent = 'User Name';
+    document.getElementById('profile-email').textContent = 'user@example.com';
+    profilePic.src = 'user.jpg';
+
+    document.getElementById('ageInput').value = 20;
+    document.getElementById('yearInput').value = 'Year';
+    document.getElementById('majorInput').value = 'Computer';
+    document.getElementById('univInput').value = 'College';
+
+    courseList.innerHTML = '';
+    notesList.innerHTML = '';
+    progressList.innerHTML = '';
+
+    // إعادة تعطيل الحقول
+    ['newCourse','addCourseBtn','noteText','addNoteBtn','progressCourse','progressValue','updateProgressBtn','editBtn'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.disabled = true;
+    });
+
+    alert('You have been logged out!');
+
+    
+});
+
+
+
+
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+    const CURRENT_USER_ID = 5;
+
+
+    const progressCourse = document.getElementById('progressCourse');
+    const progressValue = document.getElementById('progressValue');
+    const updateProgressBtn = document.getElementById('updateProgressBtn');
+
+    fetch(`http://localhost:5000/get-progress/${CURRENT_USER_ID}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.length > 0){
+                progressCourse.value = data[0].course_name;
+                progressValue.value = data[0].progress ;
+                updateProgressBtn.disabled = false;
+            }
+        })
+        .catch(err => console.error("Error fetching progress:", err));
+
+});
+</script>
+
+</body>
+</html>
