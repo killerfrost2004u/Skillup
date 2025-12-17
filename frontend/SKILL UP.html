@@ -85,83 +85,136 @@
 <!--scriptttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt-->
 <script>
 // Generate neon background lines
+// مسكت الـ div بتاع الخلفية اللي هطلع فيه خطوط النيون
 const neonBg = document.getElementById('neon-bg');
-for(let i=0;i<30;i++){
+
+// لوب علشان اعمل كذا خط نيون في الخلفية
+for(let i = 0; i < 30; i++){
+
+  // بعمل div جديد لكل خط
   let line = document.createElement('div');
-  line.className='neon-line';
-  line.style.left = (i*3)+'%';
-  line.style.animationDuration = (3+Math.random()*5)+'s';
+
+  // بدي للخط كلاس علشان CSS يعرف يحركه
+  line.className = 'neon-line';
+
+  // بحرك كل خط شوية عن اللي قبله
+  line.style.left = (i * 3) + '%';
+
+  // بخلي سرعة الحركة مختلفة لكل خط
+  line.style.animationDuration = (3 + Math.random() * 5) + 's';
+
+  // بضيف الخط جوه الخلفية
   neonBg.appendChild(line);
 }
 
-// Typing Code Editor with Output
+// --------------------------------------------
+// سطور الكود اللي هتظهر قدام المستخدم
 const codeLines = [
-  'function helloWorld() { console.log("Hello World!"); }',
-  'helloWorld();',
-  'for(let i=1;i<=3;i++){ console.log("Coding is fun!"); }',
-  'const ai = () => console.log("AI loop active"); ai();'
+  'function helloWorld() { console.log("Hello World!"); }', // تعريف دالة
+  'helloWorld();', // استدعاء الدالة
+  'for(let i=1;i<=3;i++){ console.log("Coding is fun!"); }', // لوب بسيط
+  'const ai = () => console.log("AI loop active"); ai();' // arrow function
 ];
 
+// النتيجة اللي هتظهر تحت كل سطر كود
 const outputResults = [
-  'function helloWorld() { console.log("Hello World!"); }',
-  'Hello World!',
-  'Coding is fun!\nCoding is fun!\nCoding is fun!',
-  'AI loop active'
+  'function helloWorld() { console.log("Hello World!"); }', // شكل الكود
+  'Hello World!', // ناتج الكود
+  'Coding is fun!\nCoding is fun!\nCoding is fun!', // ناتج اللوب
+  'AI loop active' // ناتج الدالة
 ];
 
+// مسكت مكان عرض الكود
 let editor = document.getElementById('code-editor');
+
+// مسكت مكان عرض الناتج
 let output = document.getElementById('output');
+
+// متغير علشان اعرف انا في انهي سطر
 let currentLine = 0;
 
+// دالة بتكتب الكود حرف حرف
 function typeLine(line, callback) {
-  let i = 0;
+
+  let i = 0; // عداد الحروف
+
+  // بمسح أي كود قديم
   editor.innerHTML = '';
-  output.textContent='';
-  let interval = setInterval(()=>{
-    let char = line[i];
+  output.textContent = '';
+
+  // كل شوية وقت يكتب حرف
+  let interval = setInterval(() => {
+
+    let char = line[i]; // الحرف الحالي
+
+    // محاولة تلوين الكلمات المهمة
     if(char.match(/function|const|let|for|console/g)){
-      editor.innerHTML+='<span class="keyword">'+char+'</span>';
+      editor.innerHTML += '<span class="keyword">' + char + '</span>';
     } else {
-      editor.innerHTML+=char;
+      editor.innerHTML += char;
     }
-    i++;
-    if(i>=line.length){
-      clearInterval(interval);
-      callback();
+
+    i++; // نروح للحرف اللي بعده
+
+    // لو السطر خلص
+    if(i >= line.length){
+      clearInterval(interval); // نوقف الكتابة
+      callback(); // نروح للخطوة اللي بعدها
     }
-  },50);
+
+  }, 50); // سرعة الكتابة
 }
 
+// دالة بتظهر الناتج حرف حرف
 function showOutput(result, callback){
-  let i=0;
-  output.textContent='';
-  let interval = setInterval(()=>{
-    output.textContent+=result[i];
+
+  let i = 0;
+  output.textContent = '';
+
+  let interval = setInterval(() => {
+
+    output.textContent += result[i];
     i++;
-    if(i>=result.length){
+
+    // لما النتيجة تخلص
+    if(i >= result.length){
       clearInterval(interval);
-      setTimeout(callback,500);
+      setTimeout(callback, 500); // استنى شوية وكمّل
     }
-  },30);
+
+  }, 30); // سرعة عرض الناتج
 }
 
+// دالة بتشغل الكود كله و تعيد من الاول
 function loopCode(){
-  typeLine(codeLines[currentLine],()=>{
-    showOutput(outputResults[currentLine],()=>{
-      currentLine=(currentLine+1)%codeLines.length;
+
+  // اكتب السطر
+  typeLine(codeLines[currentLine], () => {
+
+    // اعرض الناتج
+    showOutput(outputResults[currentLine], () => {
+
+      // انتقل للسطر اللي بعده
+      currentLine = (currentLine + 1) % codeLines.length;
+
+      // اعمل لوب من تاني
       loopCode();
     });
   });
 }
 
+// تشغيل الكود
 loopCode();
+
+// سلايدر Swiper (لو مستخدم في الصفحة)
 var swiper = new Swiper('.blog-slider', {
-    loop: true,
-    pagination: {
-      el: '.blog-slider__pagination',
-      clickable: true,
-    },
-  });
+  loop: true, // يخلي السلايدر داير
+  pagination: {
+    el: '.blog-slider__pagination', // مكان النقط
+    clickable: true, // اقدر اضغط عليها
+  },
+});
+
 </script>
  
 <!--ABOUTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT sec start-->
