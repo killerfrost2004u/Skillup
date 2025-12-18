@@ -2,8 +2,6 @@
 
 Skillup is a starter repository intended to house learning resources, exercises, and small projects to help contributors practice and improve technical skills. This README is a template — customize the sections below to match the exact purpose, tech stack, and commands for your project.
 
-> NOTE: Replace the placeholder text (in ALL CAPS or between <> ) with repository-specific details.
-
 ## Table of Contents
 - [About](#about)
 - [Features](#features)
