@@ -159,9 +159,3 @@ Project URL: [https://github.com/killerfrost2004u/Skillup](https://github.com/ki
 For questions or help, open an issue or submit a pull request.
 
 ---
-
-If you'd like, I can:
-- Tailor this README with exact tech stack, install commands, and badges (CI, license, npm/pypi) based on the repository contents.
-- Auto-generate a CONTRIBUTING.md, CODE_OF_CONDUCT.md, or a basic LICENSE file.
-Tell me which you'd prefer and I will update the README accordingly.
-```
