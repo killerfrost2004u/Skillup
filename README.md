@@ -1,6 +1,6 @@
 # Skillup
 
-Skillup is a starter repository intended to house learning resources, exercises, and small projects to help contributors practice and improve technical skills. This README is a template — customize the sections below to match the exact purpose, tech stack, and commands for your project.
+Skillup is a starter repository intended to house learning resources, exercises, and small projects to help contributors practice and improve technical skills.
 
 ## Table of Contents
 - [About](#about)
