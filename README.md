@@ -78,19 +78,25 @@ Contributions make the open-source community such an amazing place to learn, ins
 **Ibrahim Yasser**
 
 * GitHub: [@killerfrost2004u](https://github.com/killerfrost2004u)
+
 **Osama Hilalia**
 
 * GitHub: [@osamahilalia-cmd](https://github.com/osamahilalia-cmd)
+
 **Dina Kamel**
 
 * GitHub: [@dinaaakamelll-ctrl](https://github.com/dinaaakamelll-ctrl)
+
 **Baraa Mostafa**
 
 * GitHub: [@baraa244](https://github.com/baraa244)
+
 **Aya Mohammed**
 
 * GitHub: [@aya878](https://github.com/aya878)
+
 **Sara Osama**
+
 **Eslam EL-Araby**
 
 ## 📄 License
