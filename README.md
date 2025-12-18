@@ -33,22 +33,17 @@ Repository: [killerfrost2004u/Skillup](https://github.com/killerfrost2004u/Skill
 - Contribution guidelines to keep content high-quality
 
 ## Tech Stack
-Specify the languages and frameworks used in this repository. Example placeholders:
-- Primary languages: JavaScript / TypeScript / Python / Java / Go
-- Frameworks / tools: Node.js, React, Flask, Django, etc.
-- Testing: Jest, pytest, Mocha, etc.
-- CI/CD: GitHub Actions (example)
-
-Customize this list to reflect the actual contents of the repo.
+- Primary languages: HTML / JavaScript / Python / CSS / SQL
+- Frameworks / tools: Bootstrap, Django.
 
 ## Getting Started
 
 ### Prerequisites
 List the software needed to run or develop the project. Example:
 - Git >= 2.0
-- Node.js >= 14 (if using Node projects)
-- Python 3.8+ (if using Python projects)
-- Docker (optional)
+- Python 3.8+
+- VsCode
+- MicroSoft SQL
 
 ### Installation
 Clone the repository and follow the language-specific instructions.
@@ -59,44 +54,16 @@ git clone https://github.com/killerfrost2004u/Skillup.git
 cd Skillup
 ```
 
-2. Per-project/install-specific instructions
-- For Node projects:
+- For BackEnd:
 ```bash
-cd path/to/project
-npm install
-npm run start
-```
-
-- For Python projects:
-```bash
-cd path/to/project
+cd SKILLUP/Backend/app.py
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/Scripts/activate 
 pip install -r requirements.txt
-python main.py
+python app.py
 ```
 
-Replace the example commands above with the real commands for your repository subprojects.
 
-## Usage
-Explain how to use the exercises or run demos. Provide examples:
-
-- Run a specific exercise:
-```bash
-cd exercises/01-intro-to-xyz
-# follow the README in the exercise folder
-```
-
-- Run tests:
-```bash
-# Node
-npm test
-
-# Python
-pytest
-```
-
-Add screenshots, GIFs, or short demos (as links) if useful.
 
 ## Contributing
 Contributions are welcome! A suggested contribution workflow:
@@ -113,27 +80,6 @@ Please follow these guidelines:
 - Add tests or example solutions where applicable
 - Use consistent naming and folder structure
 
-Optionally reference a CONTRIBUTING.md in the repo for detailed rules.
-
-## Testing
-Describe how to run tests and which frameworks are used. Examples:
-- Run all tests:
-```bash
-npm test
-```
-- Run a Python test file:
-```bash
-pytest tests/test_example.py
-```
-
-Include instructions for linters or formatters:
-```bash
-# ESLint
-npx eslint .
-
-# Black (Python formatter)
-black .
-```
 
 ## Roadmap
 Planned improvements and ideas:
@@ -142,13 +88,11 @@ Planned improvements and ideas:
 - Introduce automated grading scripts for exercises
 - Add CI checks for exercise quality (linting, tests)
 
-If you maintain issues or a project board, link them here.
 
 ## License
 Specify the license for the repository. Example:
 This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
 
-(Replace with the actual license used in the repository.)
 
 ## Contact
 Maintainer: killerfrost2004u  
