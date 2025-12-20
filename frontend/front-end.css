@@ -25,6 +25,7 @@ body {
     font-family: Poppins, Arial, sans-serif;
     background: linear-gradient(135deg, var(--blue) 0%, var(--blue2) 40%, var(--yellow) 100%);
     color: var(--white);
+    cursor: url("pointer (4).png") 16 16, auto;
 }
 
 .header h1 {

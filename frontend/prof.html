@@ -175,16 +175,15 @@ h1,h2{
 </style>
 </head>
 <body>
-
 <!-- PROFILE HEADER -->
 <div class="card" style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
     <div style="position: relative;">
-        <img src="profile.jpg" class="profile-pic" id="profilePic" onclick="if(editMode) document.getElementById('uploadInput').click()">
+        <img src="user.jpg" class="profile-pic" id="profilePic" onclick="if(editMode) document.getElementById('uploadInput').click()">
         <input type="file" id="uploadInput" style="display:none" accept="image/*" onchange="changeProfile(event)">
     </div>
     <div style="flex:1; min: width 50px;">
-        <h2 id="studentName" contenteditable="false">dina</h2>
-        <p class="bio" id="studentBio" contenteditable="false">Web Development Learner • Data Science Focus</p>
+        <h2 id="studentName" contenteditable="false"></h2>
+            <p id="profile-email">user@example.com</p>
        <div class="card student-card">
         <div class="student-info">
             <p><strong>Age:</strong> <input type="number" id="ageInput" value="20" disabled></p>
@@ -194,6 +193,8 @@ h1,h2{
         </div>
         </div>
         <button class="edit-btn" id="editBtn" onclick="toggleEdit()">Edit YOUR INFO</button>
+        <button class="edit-btn" id="logout-link">Logout</button>
+
     </div>
 </div>
 
@@ -227,6 +228,7 @@ h1,h2{
         <h3>Course Progress</h3>
         <input type="text" id="progressCourse" placeholder="Course name" disabled>
         <input type="number" id="progressValue" placeholder="Progress %" min="0" max="100" disabled>
+
         <button onclick="updateProgress()" id="updateProgressBtn" disabled>Update Progress</button>
         <ul id="progressList"></ul>
     </div>
@@ -246,15 +248,34 @@ h1,h2{
 </div>
 
 </div>
-
 <script>
 let courseList = document.getElementById('courseList');
 let notesList = document.getElementById('notesList');
-let progressList = document.getElementById('progressList');
 let availableCourses = document.getElementById('availableCourses');
 let profilePic = document.getElementById('profilePic');
 let editMode = false;
 
+// --- Load saved user data from localStorage ---
+let userData = JSON.parse(localStorage.getItem('user')) || {
+    name: 'User Name',
+    email: 'user@example.com',
+    profile_image: 'user.jpg',
+    age: 20,
+    year: 'Year',
+    major: 'Computer',
+    college: 'College'
+};
+
+document.getElementById('studentName').textContent = userData.name;
+document.getElementById('profile-email').textContent = userData.email;
+profilePic.src = userData.profile_image;
+
+document.getElementById('ageInput').value = userData.age;
+document.getElementById('yearInput').value = userData.year;
+document.getElementById('majorInput').value = userData.major;
+document.getElementById('univInput').value = userData.college;
+
+// --- Courses list ---
 const courses = ['HTML', 'CSS', 'JAVA SCRIPT', 'Python BASICS', 'GUI','NODE JS','PHP','TESTING','FULL STACK'];
 courses.forEach(course => {
     let div = document.createElement('div');
@@ -266,15 +287,17 @@ courses.forEach(course => {
     availableCourses.appendChild(div);
 });
 
+// --- Functions ---
 function addCourse(){
     if(!editMode) return;
     let val = document.getElementById('newCourse').value;
     if(val.trim() !== ''){
         let li = document.createElement('li');
         li.textContent = val;
-        li.onclick = () => li.remove();
+        li.onclick = () => { li.remove(); saveCourses(); };
         courseList.appendChild(li);
         document.getElementById('newCourse').value = '';
+        saveCourses();
     }
 }
 
@@ -284,9 +307,10 @@ function addNote(){
     if(val.trim() !== ''){
         let li = document.createElement('li');
         li.textContent = val;
-        li.onclick = () => li.remove();
+        li.onclick = () => { li.remove(); saveNotes(); };
         notesList.appendChild(li);
         document.getElementById('noteText').value = '';
+        saveNotes();
     }
 }
 
@@ -297,10 +321,11 @@ function updateProgress(){
     if(course.trim() !== '' && value !== ''){
         let li = document.createElement('li');
         li.textContent = `${course}: ${value}%`;
-        li.onclick = () => li.remove();
+        li.onclick = () => { li.remove(); saveProgress(); };
         progressList.appendChild(li);
         document.getElementById('progressCourse').value = '';
         document.getElementById('progressValue').value = '';
+        saveProgress();
     }
 }
 
@@ -309,19 +334,170 @@ function changeProfile(event){
     const reader = new FileReader();
     reader.onload = function(){
         profilePic.src = reader.result;
+        saveUserData('profile_image', reader.result);
     };
     reader.readAsDataURL(event.target.files[0]);
 }
 
-function toggleEdit(){
+// --- Edit mode toggle ---
+function toggleEdit() {
     editMode = !editMode;
     const editableElements = document.querySelectorAll('[contenteditable], input, textarea, button');
     editableElements.forEach(el => {
         if(el.id !== 'editBtn') el.disabled = !editMode;
         if(el.hasAttribute('contenteditable')) el.contentEditable = editMode;
     });
-    document.getElementById('editBtn').textContent = editMode ? 'Done' : 'Edit';
+    document.getElementById('editBtn').textContent = editMode ? 'Done' : 'Edit YOUR INFO';
+
+    if(!editMode){
+        // جمع البيانات وحفظها
+        const updatedData = {
+            name: document.getElementById('studentName').textContent,
+            email: document.getElementById('profile-email').textContent,
+            profile_image: profilePic.src,
+            age: parseInt(document.getElementById('ageInput').value),
+            year: document.getElementById('yearInput').value,
+            major: document.getElementById('majorInput').value,
+            college: document.getElementById('univInput').value,
+
+        };
+
+        fetch('http://localhost:5000/update-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            localStorage.setItem('user', JSON.stringify(updatedData));
+
+            // مهم: إعادة تعيين editMode بعد الحفظ
+            editMode = false;
+        })
+        .catch(err => console.log("Error updating profile:", err));
+    }
 }
+
+
+
+
+// --- Save data to localStorage ---
+function saveUserData(key, value){
+    let user = JSON.parse(localStorage.getItem('user')) || {};
+    user[key] = value;
+    localStorage.setItem('user', JSON.stringify(user));
+}
+
+// --- Load saved courses, notes, and progress ---
+function loadSavedData(){
+    let savedCourses = JSON.parse(localStorage.getItem('userCourses')) || [];
+    savedCourses.forEach(c => {
+        let li = document.createElement('li');
+        li.textContent = c;
+        li.onclick = () => { li.remove(); saveCourses(); };
+        courseList.appendChild(li);
+    });
+
+    let savedNotes = JSON.parse(localStorage.getItem('userNotes')) || [];
+    savedNotes.forEach(n => {
+        let li = document.createElement('li');
+        li.textContent = n;
+        li.onclick = () => { li.remove(); saveNotes(); };
+        notesList.appendChild(li);
+    });
+
+    let savedProgress = JSON.parse(localStorage.getItem('userProgress')) || [];
+    savedProgress.forEach(p => {
+        let li = document.createElement('li');
+        li.textContent = p;
+        li.onclick = () => { li.remove(); saveProgress(); };
+        progressList.appendChild(li);
+    });
+}
+
+// --- Save helper functions ---
+function saveCourses(){
+    let arr = Array.from(courseList.querySelectorAll('li')).map(li => li.textContent);
+    localStorage.setItem('userCourses', JSON.stringify(arr));
+}
+function saveNotes(){
+    let arr = Array.from(notesList.querySelectorAll('li')).map(li => li.textContent);
+    localStorage.setItem('userNotes', JSON.stringify(arr));
+}
+function saveProgress(){
+    let arr = Array.from(progressList.querySelectorAll('li')).map(li => li.textContent);
+    localStorage.setItem('userProgress', JSON.stringify(arr));
+}
+
+// --- Initialize ---
+loadSavedData();
+
+// --- Logout Functionality ---
+// Logout دايمًا شغال
+document.getElementById('logout-link').addEventListener('click', () => {
+    if(editMode) {
+        alert("Finish editing your profile before logging out!");
+        return; // ما يعملش logout لو في وضع التعديل
+    }
+
+    // --- Logout عادي لو مش في Edit Mode ---
+    localStorage.removeItem('user');
+    localStorage.removeItem('userCourses');
+    localStorage.removeItem('userNotes');
+    localStorage.removeItem('userProgress');
+
+    // إعادة ضبط الصفحة للبروفايل الافتراضي
+    document.getElementById('studentName').textContent = 'User Name';
+    document.getElementById('profile-email').textContent = 'user@example.com';
+    profilePic.src = 'user.jpg';
+
+    document.getElementById('ageInput').value = 20;
+    document.getElementById('yearInput').value = 'Year';
+    document.getElementById('majorInput').value = 'Computer';
+    document.getElementById('univInput').value = 'College';
+
+    courseList.innerHTML = '';
+    notesList.innerHTML = '';
+    progressList.innerHTML = '';
+
+    // إعادة تعطيل الحقول
+    ['newCourse','addCourseBtn','noteText','addNoteBtn','progressCourse','progressValue','updateProgressBtn','editBtn'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.disabled = true;
+    });
+
+    alert('You have been logged out!');
+
+    
+});
+
+
+
+
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+    const CURRENT_USER_ID = 5;
+
+
+    const progressCourse = document.getElementById('progressCourse');
+    const progressValue = document.getElementById('progressValue');
+    const updateProgressBtn = document.getElementById('updateProgressBtn');
+
+    fetch(`http://localhost:5000/get-progress/${CURRENT_USER_ID}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.length > 0){
+                progressCourse.value = data[0].course_name;
+                progressValue.value = data[0].progress ;
+                updateProgressBtn.disabled = false;
+            }
+        })
+        .catch(err => console.error("Error fetching progress:", err));
+
+});
 </script>
 
 </body>
