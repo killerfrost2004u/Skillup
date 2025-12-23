@@ -1,0 +1,55 @@
+<div class="container-ai-input">
+  <label class="container-wrap">
+    <div class="card">
+      <div class="container-ai-chat">
+        <div class="chat">
+          <div class="chat-bot">
+            <div id="chat_box" class="chat-box"></div>
+            <textarea id="chat_bot" placeholder="Imagine Something...✦˚"></textarea>
+          </div>
+          <div class="options">
+            <button class="btn-submit">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </label>
+</div>
+
+<script>
+const chatBox = document.getElementById("chat_box");
+const chatInput = document.getElementById("chat_bot");
+const sendBtn = document.querySelector(".btn-submit");
+
+function sendMessage() {
+    const userMessage = chatInput.value.trim();
+    if (!userMessage) return;
+
+    chatBox.innerHTML += `<div class="user-msg">${userMessage}</div>`;
+    chatInput.value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    fetch("http://127.0.0.1:5000", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage })
+    })
+    .then(res => res.json())
+    .then(data => {
+        chatBox.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    })
+    .catch(() => {
+        chatBox.innerHTML += `<div class="bot-msg">Error connecting to server</div>`;
+    });
+}
+
+sendBtn.addEventListener("click", sendMessage);
+
+chatInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+</script>

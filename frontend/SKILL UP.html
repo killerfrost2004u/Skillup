@@ -483,6 +483,7 @@ var swiper = new Swiper('.blog-slider', {
  <!--contact section end-->  
 
 <!--bloooooooooooooooooooooooooooooooooooooogs section end-->
+<!--chat bot-->
 
 <div class="container-ai-input">
   <div class="area"></div>
@@ -610,7 +611,49 @@ var swiper = new Swiper('.blog-slider', {
     </div>
   </label>
 </div>
+<script>
 
+const chatBox = document.getElementById("chat_box");
+const chatInput = document.getElementById("chat_bot");
+const sendBtn = document.querySelector(".btn-submit");
+
+// لما المستخدم يضغط على زرار الإرسال
+sendBtn.addEventListener("click", () => {
+    const userMessage = chatInput.value.trim();
+    if (!userMessage) return;  // لو فاضي، ما يعملش حاجة
+
+    // عرض رسالة المستخدم في الشات
+    chatBox.innerHTML += `<div class="user-msg">${userMessage}</div>`;
+    chatInput.value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // إرسال الرسالة للسيرفر
+    fetch("http://127.0.0.1:5000", {  // الرابط لازم يكون نفس السيرفر
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage })
+    })
+    .then(res => res.json())
+    .then(data => {
+        // عرض رد البوت
+        chatBox.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;  // يضمن ظهور آخر رسالة
+    })
+    .catch(() => {
+        chatBox.innerHTML += `<div class="bot-msg">Error connecting to server</div>`;
+    });
+});
+
+// اختيارياً: إرسال الرسالة بالضغط على Enter
+chatInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+    }
+});
+
+
+</script>
 
 <!-- blogL -->
  <section class="blog" id="blogs">
