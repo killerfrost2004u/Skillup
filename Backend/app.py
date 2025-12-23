@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import sqlite3
+import pyodbc
 import os
 import json
 from datetime import datetime
@@ -8,6 +8,12 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
+import google.genai as genai  # Updated import
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -15,172 +21,127 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# -------------------------------
-# Database Configuration
-# -------------------------------
-DB_TYPE = os.getenv('DB_TYPE', 'sqlite').lower()  # 'sqlite' or 'sqlserver'
-
-# Global database variables (will be initialized later)
-conn = None
-cursor = None
-
-
-def init_sqlite_db():
-    """Initialize SQLite database with tables"""
-    global conn, cursor
-
-    conn = sqlite3.connect('skill_up.db', check_same_thread=False)
-    cursor = conn.cursor()
-
-    # Create Users table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Users (
-        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT DEFAULT 'student',
-        profile_image TEXT DEFAULT 'user.jpg',
-        age INTEGER,
-        year TEXT,
-        major TEXT,
-        college TEXT,
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    ''')
-
-    # Create Courses table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Courses (
-        course_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        course_name TEXT NOT NULL,
-        description TEXT,
-        instructor TEXT,
-        category TEXT
-    )
-    ''')
-
-    # Create StudentLectureProgress table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS StudentLectureProgress (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER,
-        course_id INTEGER,
-        progress_percent INTEGER DEFAULT 0,
-        last_accessed TIMESTAMP,
-        FOREIGN KEY (student_id) REFERENCES Users(user_id),
-        FOREIGN KEY (course_id) REFERENCES Courses(course_id)
-    )
-    ''')
-
-    # Insert sample courses if empty
-    cursor.execute("SELECT COUNT(*) FROM Courses")
-    if cursor.fetchone()[0] == 0:
-        sample_courses = [
-            ('Python Programming', 'Learn Python from scratch', 'Dr. Smith', 'Programming'),
-            ('Web Development', 'Full-stack web development', 'Dr. Johnson', 'Web'),
-            ('Data Science', 'Data analysis and visualization', 'Dr. Williams', 'Data'),
-            ('Machine Learning', 'AI and ML fundamentals', 'Dr. Brown', 'AI')
-        ]
-        cursor.executemany("INSERT INTO Courses (course_name, description, instructor, category) VALUES (?, ?, ?, ?)",
-                           sample_courses)
-
-        # Add sample progress for demo user
-        cursor.execute("INSERT INTO Users (name, email, password) VALUES ('demo', 'demo@example.com', 'demo123')")
-
-        for i in range(1, 5):
-            cursor.execute(
-                "INSERT INTO StudentLectureProgress (student_id, course_id, progress_percent) VALUES (1, ?, ?)",
-                (i, i * 20))
-
-    conn.commit()
-    print("✅ SQLite database initialized successfully!")
+# ============================================
+# 1. DATABASE CONFIGURATION
+# ============================================
+DB_CONFIG = {
+    'server': os.getenv('DB_SERVER', 'localhost\\SQLEXPRESS'),
+    'database': os.getenv('DB_NAME', 'elearning_platform'),
+    'username': os.getenv('DB_USERNAME', ''),
+    'password': os.getenv('DB_PASSWORD', ''),
+    'trusted_connection': os.getenv('DB_TRUSTED_CONNECTION', 'yes').lower() == 'yes'
+}
 
 
-def create_db_connection():
-    """Create database connection based on DB_TYPE"""
-    global conn, cursor
+def get_db_connection():
+    """Get SQL Server database connection"""
+    try:
+        if DB_CONFIG['trusted_connection']:
+            conn_str = (
+                f'DRIVER={{ODBC Driver 18 for SQL Server}};'
+                f'SERVER={DB_CONFIG["server"]};'
+                f'DATABASE={DB_CONFIG["database"]};'
+                f'Trusted_Connection=yes;'
+                f'TrustServerCertificate=yes;'
+            )
+        else:
+            conn_str = (
+                f'DRIVER={{ODBC Driver 18 for SQL Server}};'
+                f'SERVER={DB_CONFIG["server"]};'
+                f'DATABASE={DB_CONFIG["database"]};'
+                f'UID={DB_CONFIG["username"]};'
+                f'PWD={DB_CONFIG["password"]};'
+                f'TrustServerCertificate=yes;'
+            )
 
-    if DB_TYPE == 'sqlserver':
-        try:
-            import pyodbc
-            server = os.getenv('DB_SERVER', 'localhost\\SQLEXPRESS')
-            database = os.getenv('DB_NAME', 'skill_up')
-            username = os.getenv('DB_USERNAME', '')
-            password = os.getenv('DB_PASSWORD', '')
-            trusted_connection = os.getenv('DB_TRUSTED_CONNECTION', 'yes')
-
-            if trusted_connection.lower() == 'yes':
-                conn_str = (
-                    f'DRIVER={{ODBC Driver 18 for SQL Server}};'
-                    f'SERVER={server};'
-                    f'DATABASE={database};'
-                    f'Trusted_Connection={trusted_connection};'
-                    f'TrustServerCertificate=yes;'
-                )
-            else:
-                conn_str = (
-                    f'DRIVER={{ODBC Driver 18 for SQL Server}};'
-                    f'SERVER={server};'
-                    f'DATABASE={database};'
-                    f'UID={username};'
-                    f'PWD={password};'
-                    f'TrustServerCertificate=yes;'
-                )
-
-            print(f"🔗 Attempting SQL Server connection: {server}/{database}")
-            conn = pyodbc.connect(conn_str)
-            cursor = conn.cursor()
-            print("✅ SQL Server connection successful!")
-        except ImportError:
-            print("⚠️ pyodbc not installed, falling back to SQLite")
-            init_sqlite_db()
-        except Exception as e:
-            print(f"❌ SQL Server connection failed: {e}")
-            print("🔄 Falling back to SQLite...")
-            init_sqlite_db()
-    else:
-        # Default to SQLite
-        init_sqlite_db()
+        conn = pyodbc.connect(conn_str)
+        logger.info(f"✅ Connected to SQL Server: {DB_CONFIG['database']}")
+        return conn
+    except Exception as e:
+        logger.error(f"❌ Database connection failed: {e}")
+        return None
 
 
-# Initialize database
-create_db_connection()
+# ============================================
+# 2. GOOGLE GEMINI CONFIGURATION (UPDATED)
+# ============================================
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+
+if not GOOGLE_API_KEY:
+    logger.warning("⚠️ GOOGLE_API_KEY not found in environment variables")
+    gemini_client = None
+else:
+    try:
+        # Configure Google Gemini with the new API
+        gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
+        logger.info(f"✅ Google Gemini client initialized (using google.genai)")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize Google Gemini: {e}")
+        gemini_client = None
 
 
-# -------------------------------
-# Database Helper Functions
-# -------------------------------
+# ============================================
+# 3. DATABASE HELPER FUNCTIONS
+# ============================================
 def execute_query(query, params=()):
-    """Execute SQL query (works with both SQLite and SQL Server)"""
-    global cursor, conn
-
-    if not cursor:
-        print("❌ Database not initialized")
-        return False
+    """Execute SQL query and return results"""
+    conn = get_db_connection()
+    if not conn:
+        return None
 
     try:
+        cursor = conn.cursor()
         cursor.execute(query, params)
+
         if query.strip().upper().startswith('SELECT'):
-            return cursor.fetchall()
+            columns = [column[0] for column in cursor.description]
+            rows = cursor.fetchall()
+            result = []
+            for row in rows:
+                result.append(dict(zip(columns, row)))
+            return result
         else:
             conn.commit()
             return True
     except Exception as e:
-        print(f"❌ Query error: {e}")
+        logger.error(f"❌ Query error: {e}")
+        return None
+    finally:
         if conn:
-            conn.rollback()
-        return False
+            conn.close()
 
 
 def get_user_by_credentials(username, password):
     """Get user by username and password"""
     result = execute_query(
-        "SELECT user_id, name, email, role, profile_image, age, year, major, college, notes FROM Users WHERE name=? AND password=?",
+        "SELECT user_id, name, email, role FROM Users WHERE name=? AND password=?",
         (username, password)
     )
     return result[0] if result else None
+
+
+# ============================================
+# 4. ROUTES
+# ============================================
+
+# -------------------------------
+# HOME
+# -------------------------------
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "status": "running",
+        "service": "E-Learning Platform API",
+        "database": DB_CONFIG["database"],
+        "gemini_configured": gemini_client is not None,
+        "endpoints": {
+            "register": "POST /register",
+            "login": "POST /login",
+            "chat": "POST /chat",
+            "courses": "GET /courses",
+            "progress": "GET /progress/<user_id>"
+        }
+    })
 
 
 # -------------------------------
@@ -188,31 +149,32 @@ def get_user_by_credentials(username, password):
 # -------------------------------
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    username = data.get("username")
-    email = data.get("email")
-    password = data.get("password")
-    role = "student"
-    default_image = "user.jpg"
+    try:
+        data = request.get_json()
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        role = data.get("role", "student")
 
-    if not all([username, email, password]):
-        return jsonify({"message": "Missing required fields"}), 400
+        if not all([username, email, password]):
+            return jsonify({"message": "Missing required fields"}), 400
 
-    # Check if email exists
-    result = execute_query("SELECT * FROM Users WHERE email=?", (email,))
-    if result:
-        return jsonify({"message": "Email already exists"}), 400
+        existing = execute_query("SELECT * FROM Users WHERE email=?", (email,))
+        if existing:
+            return jsonify({"message": "Email already exists"}), 400
 
-    # Insert new user
-    success = execute_query(
-        "INSERT INTO Users (name, email, password, role, profile_image) VALUES (?, ?, ?, ?, ?)",
-        (username, email, password, role, default_image)
-    )
+        success = execute_query(
+            "INSERT INTO Users (name, email, password, role) VALUES (?, ?, ?, ?)",
+            (username, email, password, role)
+        )
 
-    if success:
-        return jsonify({"message": "Registration successful"}), 201
-    else:
-        return jsonify({"message": "Failed to register user"}), 500
+        if success:
+            return jsonify({"message": "Registration successful"}), 201
+        else:
+            return jsonify({"message": "Failed to register user"}), 500
+    except Exception as e:
+        logger.error(f"Register error: {e}")
+        return jsonify({"message": "Internal server error"}), 500
 
 
 # -------------------------------
@@ -220,279 +182,175 @@ def register():
 # -------------------------------
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-
-    user = get_user_by_credentials(username, password)
-
-    if user:
-        return jsonify({
-            "user_id": user[0],
-            "name": user[1],
-            "email": user[2],
-            "role": user[3],
-            "profile_image": user[4] or "user.jpg",
-            "age": user[5],
-            "year": user[6],
-            "major": user[7],
-            "college": user[8]
-        }), 200
-    else:
-        return jsonify({"message": "Invalid username or password"}), 401
-
-
-# -------------------------------
-# SAVE PROFILE IMAGE
-# -------------------------------
-@app.route('/save-profile-image', methods=['POST'])
-def save_profile_image():
-    data = request.get_json()
-    email = data.get('email')
-    profile_image = data.get('profile_image')
-
-    if not email or not profile_image:
-        return jsonify({"message": "Email or profile_image missing"}), 400
-
-    success = execute_query(
-        "UPDATE Users SET profile_image=? WHERE email=?",
-        (profile_image, email)
-    )
-
-    if success:
-        return jsonify({"message": "Profile image updated successfully!"}), 200
-    else:
-        return jsonify({"message": "Failed to update profile image"}), 500
-
-
-# -------------------------------
-# UPDATE PROFILE
-# -------------------------------
-@app.route('/update-profile', methods=['POST'])
-def update_profile():
-    data = request.get_json()
-    username = data.get('name')
-    email = data.get('email')
-    profile_image = data.get('profile_image')
-    age = data.get('age')
-    year = data.get('year')
-    major = data.get('major')
-    college = data.get('college')
-
-    # Check if email is used by another user
-    result = execute_query("SELECT user_id FROM Users WHERE email=? AND name<>?", (email, username))
-    if result:
-        return jsonify({"message": "Email already used by another user"}), 400
-
-    success = execute_query("""
-        UPDATE Users
-        SET profile_image=?, age=?, year=?, major=?, college=?
-        WHERE name=? AND email=?
-    """, (profile_image, age, year, major, college, username, email))
-
-    if success:
-        return jsonify({"message": "Profile updated successfully!"}), 200
-    else:
-        return jsonify({"message": "Failed to update profile"}), 500
-
-
-# -------------------------------
-# GET PROGRESS
-# -------------------------------
-@app.route('/get-progress/<int:user_id>', methods=['GET'])
-def get_progress(user_id):
-    result = execute_query("""
-        SELECT c.course_name, s.progress_percent
-        FROM StudentLectureProgress s
-        JOIN Courses c ON s.course_id = c.course_id
-        WHERE s.student_id = ?
-    """, (user_id,))
-
-    if result:
-        progress_list = [{"course_name": row[0], "progress": row[1]} for row in result]
-        return jsonify(progress_list), 200
-    else:
-        return jsonify([]), 200
-
-
-# -------------------------------
-# CONTACT
-# -------------------------------
-@app.route("/contact", methods=["POST"])
-def contact():
-    data = request.get_json()
-    name = data.get("name")
-    email = data.get("email")
-    message = data.get("message")
-
-    # Always log the contact attempt
-    print(f"📧 Contact form submission:")
-    print(f"   Name: {name}")
-    print(f"   Email: {email}")
-    print(f"   Message: {message[:50]}...")
-
-    # Try to send email
     try:
-        if send_email(name, email, message):
-            return jsonify({"message": "Message sent successfully!"}), 200
+        data = request.get_json()
+        username = data.get("username")
+        password = data.get("password")
+
+        user = get_user_by_credentials(username, password)
+
+        if user:
+            return jsonify({
+                "user_id": user["user_id"],
+                "name": user["name"],
+                "email": user["email"],
+                "role": user["role"]
+            }), 200
         else:
-            return jsonify({"message": "Message received (email not configured)"}), 200
+            return jsonify({"message": "Invalid username or password"}), 401
     except Exception as e:
-        print(f"Contact error: {e}")
-        return jsonify({"message": "Message logged successfully"}), 200
+        logger.error(f"Login error: {e}")
+        return jsonify({"message": "Internal server error"}), 500
 
 
 # -------------------------------
-# Email Function (Optional)
+# CHAT WITH GOOGLE GEMINI (UPDATED)
 # -------------------------------
-def send_email(name, email, message):
-    """Send email - works without email config"""
-    smtp_server = os.getenv('SMTP_SERVER')
-    sender_email = os.getenv('SENDER_EMAIL')
-    sender_password = os.getenv('SENDER_PASSWORD')
-
-    if not all([smtp_server, sender_email, sender_password]):
-        print("⚠️ Email not configured - message logged to console only")
-        return False
-
+@app.route('/chat', methods=['POST'])
+def chat():
+    """Handle chatbot messages using Google Gemini API"""
     try:
-        msg = MIMEMultipart()
-        msg["From"] = sender_email
-        msg["To"] = sender_email
-        msg["Subject"] = f"New Contact Form Message from {name}"
+        if not gemini_client:
+            return jsonify({
+                'reply': 'AI service is currently unavailable. Please check the API configuration.',
+                'error': 'Gemini client not initialized'
+            }), 503
 
-        body = f"""
-        Name: {name}
-        Email: {email}
-        Message: {message}
-        """
+        data = request.get_json()
+        user_message = data.get('message', '').strip()
 
-        msg.attach(MIMEText(body, "plain"))
+        if not user_message:
+            return jsonify({'reply': 'Please send a message.'}), 400
 
-        server = smtplib.SMTP(smtp_server, 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, sender_email, msg.as_string())
-        server.quit()
-        print("✅ Email sent successfully!")
-        return True
+        # Generate response using Google Gemini (new API)
+        response = gemini_client.models.generate_content(
+            model="gemini-2.0-flash-exp",  # You can use gemini-1.5-flash or gemini-1.5-pro
+            contents=user_message,
+            config={
+                "temperature": 0.7,
+                "max_output_tokens": 500,
+                "system_instruction": "You are a helpful e-learning assistant for an Arabic educational platform. Help students with programming courses like Python, Web Development, and other technical subjects. Respond in the same language as the user's question."
+            }
+        )
+
+        # Extract the response text
+        bot_reply = response.text
+
+        return jsonify({
+            'reply': bot_reply,
+            'timestamp': datetime.now().isoformat()
+        })
+
     except Exception as e:
-        print(f"❌ Email error: {e}")
-        return False
+        logger.error(f"Chat error: {e}")
+        return jsonify({
+            'reply': 'عذراً، حدث خطأ في معالجة طلبك. الرجاء المحاولة مرة أخرى.',
+            'error': str(e)
+        }), 500
 
 
 # -------------------------------
-# ADDITIONAL UTILITY ENDPOINTS
+# GET COURSES
 # -------------------------------
-@app.route('/api/health', methods=['GET'])
+@app.route('/courses', methods=['GET'])
+def get_courses():
+    """Get all courses"""
+    try:
+        courses = execute_query("SELECT * FROM Courses")
+        if courses is not None:
+            return jsonify(courses), 200
+        else:
+            return jsonify({"message": "Failed to fetch courses"}), 500
+    except Exception as e:
+        logger.error(f"Get courses error: {e}")
+        return jsonify({"message": "Internal server error"}), 500
+
+
+# -------------------------------
+# GET USER PROGRESS
+# -------------------------------
+@app.route('/progress/<int:user_id>', methods=['GET'])
+def get_progress(user_id):
+    """Get user's course progress"""
+    try:
+        return jsonify({
+            "user_id": user_id,
+            "progress": [
+                {"course": "Python Basics", "progress": 65},
+                {"course": "Web Development", "progress": 30}
+            ]
+        }), 200
+    except Exception as e:
+        logger.error(f"Progress error: {e}")
+        return jsonify({"message": "Internal server error"}), 500
+
+
+# -------------------------------
+# HEALTH CHECK
+# -------------------------------
+@app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     return jsonify({
         "status": "healthy",
-        "database": DB_TYPE,
-        "database_connected": conn is not None,
+        "database": DB_CONFIG["database"],
+        "database_connected": get_db_connection() is not None,
+        "gemini_configured": gemini_client is not None,
         "timestamp": datetime.now().isoformat()
     }), 200
 
 
-@app.route('/api/reset-demo', methods=['POST'])
-def reset_demo():
-    """Reset database to demo state (for testing)"""
-    if DB_TYPE == 'sqlite':
-        # Close current connection
-        if conn:
-            conn.close()
-
-        # Delete SQLite file
-        if os.path.exists('skill_up.db'):
-            os.remove('skill_up.db')
-
-        # Reinitialize database
-        create_db_connection()
-
-        return jsonify({"message": "Demo database reset successfully!"}), 200
-    else:
-        return jsonify({"message": "Reset only available for SQLite demo mode"}), 400
-
-
 # -------------------------------
-# TEST ENDPOINT
+# TEST GEMINI (UPDATED)
 # -------------------------------
-@app.route("/", methods=["GET"])
-def home():
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>E-Learning Platform API</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }}
-            .container {{ max-width: 800px; margin: 0 auto; }}
-            .card {{ background: #f4f4f4; padding: 20px; margin: 20px 0; border-radius: 5px; }}
-            .success {{ color: green; font-weight: bold; }}
-            .warning {{ color: orange; font-weight: bold; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🎓 E-Learning Platform API</h1>
-            <p><span class="success">Status: Running ✅</span></p>
-            <p>Database Type: <strong>{DB_TYPE.upper()}</strong></p>
-            <p>Database Connected: <strong>{'Yes ✅' if conn else 'No ❌'}</strong></p>
+@app.route('/test-gemini', methods=['GET'])
+def test_gemini():
+    """Test Google Gemini API connection"""
+    if not gemini_client:
+        return jsonify({
+            "status": "error",
+            "message": "Gemini client not initialized. Check GOOGLE_API_KEY in .env file."
+        }), 400
 
-            <div class="card">
-                <h3>📚 Available Endpoints:</h3>
-                <ul>
-                    <li><strong>POST /register</strong> - Register new user</li>
-                    <li><strong>POST /login</strong> - User login</li>
-                    <li><strong>POST /contact</strong> - Send contact message</li>
-                    <li><strong>POST /save-profile-image</strong> - Update profile image</li>
-                    <li><strong>POST /update-profile</strong> - Update profile info</li>
-                    <li><strong>GET /get-progress/&lt;user_id&gt;</strong> - Get learning progress</li>
-                    <li><strong>GET /api/health</strong> - Health check</li>
-                    <li><strong>POST /api/reset-demo</strong> - Reset demo data</li>
-                </ul>
-            </div>
+    try:
+        response = gemini_client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            contents="Say 'Hello World' in Arabic"
+        )
 
-            <div class="card">
-                <h3>⚙️ Configuration:</h3>
-                <p>Current database: <code>{DB_TYPE}</code></p>
-                <p>To switch to SQL Server, create a <code>.env</code> file with:</p>
-                <pre>
-DB_TYPE=sqlserver
-DB_SERVER=localhost\\SQLEXPRESS
-DB_NAME=skill_up
-                </pre>
-            </div>
-
-            <div class="card">
-                <h3>🚀 Quick Start:</h3>
-                <p>1. Install dependencies: <code>pip install Flask Flask-CORS python-dotenv</code></p>
-                <p>2. Run the server: <code>python app.py</code></p>
-                <p>3. Test with Postman or your frontend</p>
-                <p><strong>Demo credentials:</strong> username: <code>demo</code>, password: <code>demo123</code></p>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
+        return jsonify({
+            "status": "success",
+            "message": "Google Gemini API is working!",
+            "response": response.text
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 
-# -------------------------------
+# ============================================
+# 5. MAIN ENTRY POINT
+# ============================================
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', '5000'))
-    host = os.getenv('HOST', '0.0.0.0')
-
     print("\n" + "=" * 50)
     print("🚀 E-Learning Platform API")
     print("=" * 50)
-    print(f"📊 Database: {DB_TYPE.upper()}")
-    print(f"🌐 Server: http://{host if host != '0.0.0.0' else 'localhost'}:{port}")
-    print(f"📁 SQLite file: {'skill_up.db' if DB_TYPE == 'sqlite' else 'N/A'}")
-    print(f"🔌 Database connected: {'Yes ✅' if conn else 'No ❌'}")
-    print("\n📋 Sample credentials for testing:")
-    print("   Username: demo")
-    print("   Password: demo123")
+    print(f"📊 Database: {DB_CONFIG['database']}")
+    print(f"🔌 Database Server: {DB_CONFIG['server']}")
+    print(f"🤖 Google Gemini Configured: {'Yes ✅' if gemini_client else 'No ❌'}")
+    print(f"📚 Using google.genai package (new API)")
+
+    if not gemini_client and GOOGLE_API_KEY:
+        print(f"⚠️  GOOGLE_API_KEY found but client failed to initialize")
+    elif not GOOGLE_API_KEY:
+        print(f"⚠️  GOOGLE_API_KEY not found in environment")
+
+    print(f"🌐 Server will run on: http://localhost:5000")
     print("=" * 50 + "\n")
+
+    port = int(os.getenv('PORT', '5000'))
+    host = os.getenv('HOST', '0.0.0.0')
 
     app.run(debug=True, host=host, port=port)
