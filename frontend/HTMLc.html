@@ -53,6 +53,10 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
+      body.dark-mode .video-overlay {
+        background: rgba(0, 0, 0, 0.85);
+      }
+
       /* Background overlay */
       .background-overlay {
         position: fixed;
@@ -156,7 +160,51 @@
           0 8px 30px rgba(0, 0, 0, 0.2);
         background: var(--wh);
         transition: all 0.4s ease;
+        position: relative;
       }
+
+      .video-player iframe.locked {
+        filter: blur(10px) grayscale(100%);
+        pointer-events: none;
+      }
+
+      .video-overlay{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+        padding: 2rem;
+        z-index: 10;
+        border-radius: 20px;
+        animation: fadeIn 0.5s ease;
+      }
+
+      .video-overlay i{
+        font-size: 3rem;
+        color: var(--gd);
+        margin-bottom: 1rem;
+      }
+
+
+      .video-overlay h3{
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: white;
+      }
+
+      .video-overlay p{
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+      }
+
       .video-player:hover {
         box-shadow: inset 0 6px 15px rgba(0, 0, 0, 0.15),
           0 12px 40px rgba(0, 0, 0, 0.3);
@@ -165,6 +213,50 @@
         width: 100%;
         height: 450px;
         border: none;
+      }
+
+      .overlay-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .overlay-btn {
+        background: var(--bu);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .overlay-btn:hover {
+        background: #2e8bc0;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .overlay-btn.login {
+        background: var(--gd);
+        color: #333;
+      }
+
+      .overlay-btn.login:hover {
+        background: #d4b864;
+      }
+
+      .overlay-btn.register {
+        background: #ff4757;
+      }
+
+      .overlay-btn.register:hover {
+        background: #ff3742;
       }
 
       /* Navigation buttons */
@@ -292,6 +384,25 @@
         display: none;
       }
 
+      .lecture-item.locked {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .lecture-item.locked:hover {
+        transform: none;
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+      }
+
+      .lecture-item.locked::after {
+        content: "🔒";
+        position: absolute;
+        right: 15px;
+        font-size: 1rem;
+        opacity: 0.7;
+      }
+
       /* Modal */
       .modal {
         display: none;
@@ -321,7 +432,21 @@
       .modal-content h3 {
         margin-bottom: 1rem;
         color: var(--bu);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
       }
+
+      .modal-btn.login-btn {
+        background: var(--gd);
+        color: #333;
+      }
+
+      .modal-btn.cancel-btn {
+        background: #666;
+      }
+
       .modal-buttons {
         display: flex;
         gap: 1rem;
@@ -531,6 +656,141 @@
       return userData ? JSON.parse(userData) : null;
   }
 
+  // ==========================
+  // LOGIN PROTECTION FUNCTIONS - ADD AFTER getCurrentUser()
+  // ==========================
+
+  // Check if user has access to this track
+  async function checkVideoAccess() {
+      const user = getCurrentUser();
+      if (!user || !user.token) {
+          return false;
+      }
+
+      try {
+          const response = await fetch(
+              `${API_BASE_URL}/api/check-video-access/${PLAYLIST_ID}`, 
+              {
+                  headers: { 'Authorization': `Bearer ${user.token}` }
+              }
+          );
+          return response.status === 200;
+      } catch (error) {
+          console.error('Access check error:', error);
+          return false;
+      }
+  }
+
+  // Redirect to login page
+  function redirectToLogin() {
+      localStorage.setItem('redirect_url', window.location.href);
+      window.location.href = 'login.html'; // Change to your login page URL
+  }
+
+  // Show access modal
+  function showAccessModal() {
+      let modal = document.getElementById('access-modal');
+      if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'access-modal';
+          modal.className = 'modal';
+          modal.innerHTML = `
+              <div class="modal-content">
+                  <h3><i class="fas fa-lock"></i> Restricted Content</h3>
+                  <p>You need to be logged in to watch this video.</p>
+                  <div class="modal-buttons">
+                      <button id="login-redirect-btn" class="modal-btn">
+                          <i class="fas fa-sign-in-alt"></i> Login / Register
+                      </button>
+                      <button id="close-access-modal" class="modal-btn" style="background: #666;">
+                          <i class="fas fa-times"></i> Cancel
+                      </button>
+                  </div>
+              </div>
+          `;
+          document.body.appendChild(modal);
+            
+          // Add event listeners
+          document.getElementById('login-redirect-btn').addEventListener('click', redirectToLogin);
+          document.getElementById('close-access-modal').addEventListener('click', () => {
+              modal.style.display = 'none';
+          });
+      }
+      modal.style.display = 'block';
+  }
+
+  // Create video overlay
+  function createVideoOverlay() {
+      let overlay = document.getElementById('video-overlay');
+      if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'video-overlay';
+          overlay.className = 'video-overlay';
+          overlay.innerHTML = `
+              <i class="fas fa-lock"></i>
+              <h3>Content Locked</h3>
+              <p>Login or register to unlock this video</p>
+              <div class="overlay-buttons">
+                  <button onclick="redirectToLogin()" class="overlay-btn">
+                      <i class="fas fa-sign-in-alt"></i> Login to Unlock
+                  </button>
+              </div>
+          `;
+          videoIframe.parentNode.appendChild(overlay);
+      }
+      return overlay;
+  }
+
+  // Protected video loader
+  async function loadVideoWithProtection(videoId) {
+      const hasAccess = await checkVideoAccess();
+      const overlay = document.getElementById('video-overlay');
+
+      if (!hasAccess) {
+          // Locked state - blur video and show overlay
+          videoIframe.src = `https://www.youtube.com/embed/${videoId}?controls=0&showinfo=0`;
+          videoIframe.classList.add('locked');
+
+          // Show overlay
+          if (!overlay) {
+              createVideoOverlay();
+          } else {
+              overlay.style.display = 'flex';
+          }
+
+          // Lock lecture items
+          document.querySelectorAll('.lecture-item').forEach(item => {
+              item.classList.add('locked');
+          });
+
+          // Disable navigation
+          backBtn.disabled = true;
+          nextBtn.disabled = true;
+
+          return false; // No access
+      } else {
+          // Unlocked state - normal video
+          videoIframe.src = `https://www.youtube.com/embed/${videoId}`;
+          videoIframe.classList.remove('locked');
+
+          // Hide overlay
+          if (overlay) {
+              overlay.style.display = 'none';
+          }
+
+          // Unlock lecture items
+          document.querySelectorAll('.lecture-item').forEach(item => {
+              item.classList.remove('locked');
+          });
+
+          // Enable navigation
+          backBtn.disabled = false;
+          nextBtn.disabled = false;
+
+          return true; // Has access
+      }
+  }
+
   function saveToLocalStorage(videoId, completed) {
       const key = `progress_${PLAYLIST_ID}`;
       let progress = JSON.parse(localStorage.getItem(key)) || {};
@@ -675,27 +935,50 @@
         <div class="lecture-check"><i class="fas fa-check"></i></div>
       `;
 
-      li.addEventListener("click", () => updateActiveLecture(i));
+      li.addEventListener("click", async () => {
+        const hasAccess = await checkVideoAccess();
+        if (!hasAccess) {
+          showAccessModal();
+        } else {
+          updateActiveLecture(i);
+        }
+      });
       lectureList.appendChild(li);
     });
 
     lectures = document.querySelectorAll(".lecture-item");
   }
 
-  function loadVideo(videoId) {
-    videoIframe.src = `https://www.youtube.com/embed/${videoId}`;
+  async function loadVideo(videoId) {
+    const hasAccess = await loadVideoWithProtection(videoId);
+    return hasAccess;
   }
 
-  function updateActiveLecture(index) {
+  async function updateActiveLecture(index) {
+    const hasAccess = await checkVideoAccess();
+    
+    if (!hasAccess) {
+        showAccessModal();
+        return;
+    }
+    
     lectures.forEach((item, i) =>
       item.classList.toggle("active", i === index)
     );
     currentIndex = index;
-    loadVideo(lectures[index].dataset.video);
-    setTimeout(() => markCompleted(index), 3000);
+    await loadVideo(lectures[index].dataset.video);
+    
+    // Only mark as completed if user has access
+    if (hasAccess) {
+        setTimeout(() => markCompleted(index), 3000);
+    }
   }
 
   async function markCompleted(index) {
+    const hasAccess = await checkVideoAccess();
+    if(!hasAccess) return;
+
+
     const videoId = lectures[index].dataset.video;
 
     lectures[index].setAttribute("data-completed", "true");
@@ -747,12 +1030,27 @@
   // ==========================
   // EVENT LISTENERS (SAME FOR ALL PAGES)
   // ==========================
-  backBtn.addEventListener("click", () => {
-    if (currentIndex > 0) updateActiveLecture(currentIndex - 1);
+  backBtn.addEventListener("click", async () => {
+    if (currentIndex > 0) {
+      const hasAccess = await checkVideoAccess();
+      if (!hasAccess) {
+        showAccessModal();
+      } else {
+        updateActiveLecture(currentIndex -1);
+      }
+    }
   });
 
-  nextBtn.addEventListener("click", () => {
-    if (currentIndex < lectures.length - 1) updateActiveLecture(currentIndex + 1);
+  nextBtn.addEventListener("click", async () => {
+    if (currentIndex < lectures.length - 1) {
+      const hasAccess = await checkVideoAccess();
+      if(!hasAccess) {
+        showAccessModal();
+      }
+      else {
+        updateActiveLecture(currentIndex + 1);
+      }
+    }
   });
 
   toggleTheme.addEventListener("click", () => {
@@ -765,15 +1063,28 @@
   // ==========================
   // INITIALIZE PAGE (SAME FOR ALL PAGES)
   // ==========================
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
       currentUser = getCurrentUser();
+
+      const hasAccess = await checkVideoAccess();
+
       fetchPlaylistVideos().then(videos => {
           populateLectureList(videos);
           if (lectures.length > 0) {
-              updateActiveLecture(0);
+            loadVideoWithProtection(lectures[0].dataset.video)
+
+            if (hasAccess) {
               initializeProgress();
+            }
           }
       });
+
+      setTimeout(() => {
+    if (lectures.length > 0) {
+      lectures[0].classList.add('active');
+    }
+    } ,100);
   });
+  </script>
   </body>
 </html>

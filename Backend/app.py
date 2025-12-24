@@ -1,15 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from functools import wraps
 import pyodbc
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 import google.genai as genai  # Updated import
 import logging
+import jwt
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,6 +33,14 @@ DB_CONFIG = {
     'password': os.getenv('DB_PASSWORD', ''),
     'trusted_connection': os.getenv('DB_TRUSTED_CONNECTION', 'yes').lower() == 'yes'
 }
+
+
+# ============================================
+# JWT CONFIGURATION - ADD THIS SECTION
+# ============================================
+JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRY_HOURS = 24
 
 
 def get_db_connection():
@@ -152,6 +162,46 @@ def get_user_progress_key(user_id, playlist_id):
 
 
 # ============================================
+# AUTHENTICATION MIDDLEWARE - ADD THIS
+# ============================================
+def token_required(f):
+    """Decorator to require valid JWT token"""
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        # Check for token in headers
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+
+        try:
+            data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            current_user = execute_query(
+                "SELECT user_id, name, email, role FROM Users WHERE user_id=?",
+                (data['user_id'],)
+            )
+            if not current_user:
+                return jsonify({'message': 'User not found!'}), 401
+
+            request.current_user = current_user[0]
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired!'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Invalid token!'}), 401
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+# ============================================
 # 4. ROUTES
 # ============================================
 
@@ -221,11 +271,21 @@ def login():
         user = get_user_by_credentials(username, password)
 
         if user:
+            token_data = {
+                'user_id': user['user_id'],
+                'name': user['name'],
+                'email': user['email'],
+                'exp': datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS),
+            }
+            token = jwt.encode(token_data, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
             return jsonify({
                 "user_id": user["user_id"],
                 "name": user["name"],
                 "email": user["email"],
-                "role": user["role"]
+                "role": user["role"],
+                "token": token,
+                "message": "Login successful"
             }), 200
         else:
             return jsonify({"message": "Invalid username or password"}), 401
@@ -443,6 +503,33 @@ def mark_video_completed():
     except Exception as e:
         logger.error(f"Mark completed error: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+
+# -------------------------------
+# CHECK VIDEO ACCESS (PROTECTED)
+# -------------------------------
+@app.route('/api/check-video-access/<string:playlist_id>', methods=['GET'])
+@token_required  # <-- This protects the endpoint
+def check_video_access(playlist_id):
+    """Check if user has access to playlist videos"""
+    try:
+        user_id = request.current_user['user_id']
+
+        # Here you can add additional checks:
+        # - If user purchased this course
+        # - If user is subscribed
+        # - Any other business logic
+
+        return jsonify({
+            "has_access": True,
+            "user_id": user_id,
+            "playlist_id": playlist_id,
+            "message": "Access granted"
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Check access error: {e}")
+        return jsonify({"message": "Internal server error"}), 500
 
 
 # -------------------------------
