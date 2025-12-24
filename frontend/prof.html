@@ -175,6 +175,50 @@ h1,h2{
 </style>
 </head>
 <body>
+    <script>
+        // Authentication check - this runs IMMEDIATELY
+        (async function() {
+            try {
+                const token = localStorage.getItem('token');
+
+                // If no token, redirect IMMEDIATELY to login with register panel
+                if (!token) {
+                    window.location.href = "log.html?show=register";
+                    return;
+                }
+            
+                // Verify token with backend
+                const response = await fetch('http://localhost:5000/api/check-auth', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            
+                const data = await response.json();
+
+                // If not authenticated, redirect
+                if (!data.authenticated) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = "log.html?show=register";
+                    return;
+                }
+            
+                // Store user data from backend
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                }
+
+            } catch (error) {
+                console.error('Auth error:', error);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = "log.html?show=register";
+            }
+        })();
+    </script>
+
 <!-- PROFILE HEADER -->
 <div class="card" style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
     <div style="position: relative;">
@@ -435,41 +479,22 @@ loadSavedData();
 
 // --- Logout Functionality ---
 // Logout دايمًا شغال
+// --- Logout Functionality ---
 document.getElementById('logout-link').addEventListener('click', () => {
     if(editMode) {
         alert("Finish editing your profile before logging out!");
-        return; // ما يعملش logout لو في وضع التعديل
+        return;
     }
 
-    // --- Logout عادي لو مش في Edit Mode ---
+    // Clear all local storage
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('userCourses');
     localStorage.removeItem('userNotes');
     localStorage.removeItem('userProgress');
 
-    // إعادة ضبط الصفحة للبروفايل الافتراضي
-    document.getElementById('studentName').textContent = 'User Name';
-    document.getElementById('profile-email').textContent = 'user@example.com';
-    profilePic.src = 'user.jpg';
-
-    document.getElementById('ageInput').value = 20;
-    document.getElementById('yearInput').value = 'Year';
-    document.getElementById('majorInput').value = 'Computer';
-    document.getElementById('univInput').value = 'College';
-
-    courseList.innerHTML = '';
-    notesList.innerHTML = '';
-    progressList.innerHTML = '';
-
-    // إعادة تعطيل الحقول
-    ['newCourse','addCourseBtn','noteText','addNoteBtn','progressCourse','progressValue','updateProgressBtn','editBtn'].forEach(id=>{
-        const el = document.getElementById(id);
-        if(el) el.disabled = true;
-    });
-
-    alert('You have been logged out!');
-
-    
+    // Redirect to login with register panel
+    window.location.href = "log.html?show=register";
 });
 
 

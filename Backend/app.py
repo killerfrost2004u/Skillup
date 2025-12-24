@@ -294,6 +294,47 @@ def login():
         return jsonify({"message": "Internal server error"}), 500
 
 
+@app.route('/api/check-auth', methods=['GET'])
+def check_auth():
+    """Check if user is authenticated"""
+    try:
+        token = None
+
+        # Check for token in headers
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+
+        if not token:
+            return jsonify({'authenticated': False}), 200
+
+        # Verify token
+        data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+
+        # Check if user exists
+        user = execute_query(
+            "SELECT user_id, name, email, role FROM Users WHERE user_id=?",
+            (data['user_id'],)
+        )
+
+        if user:
+            return jsonify({
+                'authenticated': True,
+                'user': user[0]
+            }), 200
+        else:
+            return jsonify({'authenticated': False}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'authenticated': False}), 200
+    except jwt.InvalidTokenError:
+        return jsonify({'authenticated': False}), 200
+    except Exception as e:
+        logger.error(f"Check auth error: {e}")
+        return jsonify({'authenticated': False}), 200
+
+
 # -------------------------------
 # CHAT WITH GOOGLE GEMINI (UPDATED)
 # -------------------------------

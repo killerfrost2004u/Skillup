@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Auto-show register panel if redirected ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const showRegister = urlParams.get('show') === 'register';
+    
+    if (showRegister) {
+        const container = document.querySelector('.container');
+        if (container) {
+            container.classList.add('active');
+        }
+    }
 
     const registerForm = document.getElementById('register-form');
     const loginForm = document.getElementById('login-form');
@@ -26,49 +36,73 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------- REGISTER -----------
- // ----------- REGISTER -----------
-if (registerForm) {
-    registerForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    if (registerForm) {
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-        const username = document.getElementById("register-username").value;
-        const email = document.getElementById("register-email").value;
-        const password = document.getElementById("register-password").value;
+            const username = document.getElementById("register-username").value;
+            const email = document.getElementById("register-email").value;
+            const password = document.getElementById("register-password").value;
 
-        try {
-            const res = await fetch("http://127.0.0.1:5000/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, email, password })
-            });
+            try {
+                const res = await fetch("http://127.0.0.1:5000/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, email, password })
+                });
 
-            const data = await res.json(); // اقرأ body مرة واحدة فقط
+                const data = await res.json();
 
-            if(res.ok){
-                // حفظ البيانات في localStorage مثل login
-                localStorage.setItem('user', JSON.stringify({
-                    user_id: data.user_id || null,
-                    name: data.name || username,
-                    email: data.email || email,
-                    profile_image: data.profile_image || "user.jpg",
-                    age: data.age || 20,
-                    year: data.year || "Year",
-                    major: data.major || "Computer",
-                    college: data.college || "College"
-                }));
+                if(res.ok){
+                    showMessage("Registered successfully! Logging you in...");
+                    
+                    // Auto-login after registration
+                    try {
+                        const loginRes = await fetch("http://127.0.0.1:5000/login", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ username, password })
+                        });
+                        
+                        const loginData = await loginRes.json();
+                        
+                        if(loginRes.ok && loginData.token) {
+                            // Save the JWT token
+                            localStorage.setItem("token", loginData.token);
+                            
+                            // Save user data
+                            localStorage.setItem("user", JSON.stringify({
+                                user_id: loginData.user_id,
+                                name: loginData.name,
+                                email: loginData.email,
+                                role: loginData.role || 'student',
+                                profile_image: "user.jpg",
+                                age: 20,
+                                year: "Year",
+                                major: "Computer",
+                                college: "College"
+                            }));
+                            
+                            showMessage("Login successful!");
+                            setTimeout(() => { window.location.href = "prof.html"; }, 1000);
+                        } else {
+                            // If auto-login fails
+                            showMessage("Registration complete! Please login.");
+                            setTimeout(() => { window.location.href = "log.html"; }, 1500);
+                        }
+                    } catch(err) {
+                        showMessage("Registration complete! Please login.");
+                        setTimeout(() => { window.location.href = "log.html"; }, 1500);
+                    }
+                } else {
+                    showMessage(data.message);
+                }
 
-                showMessage("Registered successfully!");
-                setTimeout(() => { window.location.href = "SKILL UP.html"; }, 1000);
-            } else {
-                showMessage(data.message);
+            } catch(err) {
+                showMessage("Network Error: " + err.message);
             }
-
-        } catch(err) {
-            showMessage("Network Error: " + err.message);
-        }
-    });
-}
-
+        });
+    }
 
     // ----------- LOGIN -----------
     if (loginForm) {
@@ -85,24 +119,29 @@ if (registerForm) {
                     body: JSON.stringify({ username, password })
                 });
 
-
-                const data = await res.json(); // اقرأ body مرة واحدة فقط
+                const data = await res.json();
+                
                 if(res.ok){
+                    // Save the JWT token
+                    if (data.token) {
+                        localStorage.setItem("token", data.token);
+                    }
+
+                    // Save user data
                     localStorage.setItem("user", JSON.stringify({
-                        user_id:data.user_id,
+                        user_id: data.user_id,
                         name: data.name,
                         email: data.email,
-                        profile_image: data.profile_image || "user.jpg",
-                        age: data.age,
-                        year: data.year,
-                        major: data.major,
-                        college: data.college
+                        role: data.role || 'student',
+                        profile_image: "user.jpg",
+                        age: data.age || 20,
+                        year: data.year || "Year",
+                        major: data.major || "Computer",
+                        college: data.college || "College"
                     }));
+                    
                     showMessage("Login successful!");
-                    setTimeout(() => { window.location.href = "SKILL UP.html"; }, 1000);
-
-
-
+                    setTimeout(() => { window.location.href = "prof.html"; }, 1000);
 
                 } else {
                     showMessage(data.message);
@@ -120,6 +159,15 @@ if (registerForm) {
 const container = document.querySelector('.container');
 const registerBtn = document.querySelector('.register-btn');
 const loginBtn = document.querySelector('.login-btn');
-registerBtn.addEventListener('click', () => container.classList.add('active'));
-loginBtn.addEventListener('click', () => container.classList.remove('active'));
 
+if (registerBtn) {
+    registerBtn.addEventListener('click', () => {
+        if (container) container.classList.add('active');
+    });
+}
+
+if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+        if (container) container.classList.remove('active');
+    });
+}
