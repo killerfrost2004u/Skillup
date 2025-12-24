@@ -506,8 +506,11 @@
     </div>
 <script>
   // ==========================
+  // CONFIGURATION - CHANGE ONLY THIS LINE PER TRACK
+  // ==========================
   const API_KEY = "AIzaSyBwL2DIVb53ZGjtBdmQ0hjj9UG3I2e-XGo";
-  const PLAYLIST_ID = "PLSiLeKadTQ7nLJxpQo1-944miQKlheu-v";
+  const PLAYLIST_ID = "PLSiLeKadTQ7nLJxpQo1-944miQKlheu-v"; // ⬅️ CHANGE ONLY THIS LINE!
+  const API_BASE_URL = 'http://localhost:5000';
 
   const videoIframe = document.getElementById("video-iframe");
   const lectureList = document.getElementById("lecture-list");
@@ -518,9 +521,98 @@
 
   let lectures = [];
   let currentIndex = 0;
+  let currentUser = null;
 
   // ==========================
-  // دالة تحويل مدة ISO 8601 (PT15M30S) إلى دقائق:ثواني
+  // USER MANAGEMENT FUNCTIONS (SAME FOR ALL PAGES)
+  // ==========================
+  function getCurrentUser() {
+      const userData = localStorage.getItem('user');
+      return userData ? JSON.parse(userData) : null;
+  }
+
+  function saveToLocalStorage(videoId, completed) {
+      const key = `progress_${PLAYLIST_ID}`;
+      let progress = JSON.parse(localStorage.getItem(key)) || {};
+
+      if (!progress.videos) progress.videos = {};
+      progress.videos[videoId] = {
+          completed: completed,
+          timestamp: new Date().toISOString()
+      };
+
+      localStorage.setItem(key, JSON.stringify(progress));
+  }
+
+  function loadFromLocalStorage() {
+      const key = `progress_${PLAYLIST_ID}`;
+      const progress = JSON.parse(localStorage.getItem(key)) || {};
+      return progress.videos || {};
+  }
+
+  async function saveVideoProgress(videoId, completed = false) {
+      const user = getCurrentUser();
+      if (!user || !user.user_id) {
+          saveToLocalStorage(videoId, completed);
+          return;
+      }
+
+      try {
+          const response = await fetch(`${API_BASE_URL}/api/progress/save`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                  user_id: user.user_id,
+                  playlist_id: PLAYLIST_ID,
+                  video_id: videoId,
+                  completed: completed
+              })
+          });
+          await response.json();
+      } catch (error) {
+          saveToLocalStorage(videoId, completed);
+      }
+  }
+
+  async function loadVideoProgress() {
+      const user = getCurrentUser();
+
+      if (user && user.user_id) {
+          try {
+              const response = await fetch(
+                  `${API_BASE_URL}/api/progress/${user.user_id}/${PLAYLIST_ID}`
+              );
+              const data = await response.json();
+
+              if (data.success) {
+                  return data.videos || {};
+              }
+          } catch (error) {
+              console.error('Error loading progress:', error);
+          }
+      }
+
+      return loadFromLocalStorage();
+  }
+
+  async function initializeProgress() {
+      currentUser = getCurrentUser();
+      const savedProgress = await loadVideoProgress();
+
+      lectures.forEach((lecture, index) => {
+          const videoId = lecture.dataset.video;
+          if (savedProgress[videoId] && savedProgress[videoId].completed) {
+              lecture.setAttribute("data-completed", "true");
+              lecture.querySelector('.lecture-check i').style.color = '#4CAF50';
+          }
+      });
+
+      updateProgressCircle();
+  }
+
+  // ==========================
+  // YOUTUBE API FUNCTIONS (SAME FOR ALL PAGES)
+  // ==========================
   function formatDuration(duration) {
     const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
     const hours = match[1] ? parseInt(match[1].replace("H","")) : 0;
@@ -533,7 +625,6 @@
     }
   }
 
-  // ==========================
   async function fetchPlaylistVideos() {
     let videos = [];
     let nextPageToken = "";
@@ -544,10 +635,8 @@
       );
       const data = await res.json();
 
-      // جمع جميع videoIds
       const videoIds = data.items.map(item => item.snippet.resourceId.videoId).join(",");
 
-      // جلب تفاصيل الفيديو للحصول على المدة
       const detailsRes = await fetch(
         `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${API_KEY}`
       );
@@ -568,7 +657,6 @@
     return videos;
   }
 
-  // ==========================
   function populateLectureList(videos) {
     lectureList.innerHTML = "";
     videos.forEach((video, i) => {
@@ -594,7 +682,6 @@
     lectures = document.querySelectorAll(".lecture-item");
   }
 
-  // باقي الكود كما هو
   function loadVideo(videoId) {
     videoIframe.src = `https://www.youtube.com/embed/${videoId}`;
   }
@@ -608,15 +695,21 @@
     setTimeout(() => markCompleted(index), 3000);
   }
 
-  function markCompleted(index) {
+  async function markCompleted(index) {
+    const videoId = lectures[index].dataset.video;
+
     lectures[index].setAttribute("data-completed", "true");
-    updateProgressCircle();
+    lectures[index].querySelector('.lecture-check i').style.color = '#4CAF50';
+
+    await saveVideoProgress(videoId, true);
+    await updateProgressCircle();
+
     if ([...lectures].every((li) => li.dataset.completed === "true")) {
       completionModal.style.display = "block";
     }
   }
 
-  function updateProgressCircle() {
+  async function updateProgressCircle() {
     const completed = document.querySelectorAll(
       '.lecture-item[data-completed="true"]'
     ).length;
@@ -629,11 +722,35 @@
     const offset = circumference - (percent / 100) * circumference;
     circle.style.strokeDashoffset = offset;
     document.getElementById("progress-text-circle").textContent = percent + "%";
+
+    // Save overall progress
+    const user = getCurrentUser();
+    if (user && user.user_id) {
+        try {
+            await fetch(`${API_BASE_URL}/api/progress/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: user.user_id,
+                    playlist_id: PLAYLIST_ID,
+                    overall_progress: percent,
+                    completed_videos: completed,
+                    total_videos: lectures.length
+                })
+            });
+        } catch (error) {
+            console.error('Error saving overall progress:', error);
+        }
+    }
   }
 
+  // ==========================
+  // EVENT LISTENERS (SAME FOR ALL PAGES)
+  // ==========================
   backBtn.addEventListener("click", () => {
     if (currentIndex > 0) updateActiveLecture(currentIndex - 1);
   });
+
   nextBtn.addEventListener("click", () => {
     if (currentIndex < lectures.length - 1) updateActiveLecture(currentIndex + 1);
   });
@@ -645,9 +762,18 @@
       : '<i class="fas fa-moon"></i> Night Mode';
   });
 
-  fetchPlaylistVideos().then(videos => {
-    populateLectureList(videos);
-    if (lectures.length > 0) updateActiveLecture(0);
+  // ==========================
+  // INITIALIZE PAGE (SAME FOR ALL PAGES)
+  // ==========================
+  document.addEventListener('DOMContentLoaded', function() {
+      currentUser = getCurrentUser();
+      fetchPlaylistVideos().then(videos => {
+          populateLectureList(videos);
+          if (lectures.length > 0) {
+              updateActiveLecture(0);
+              initializeProgress();
+          }
+      });
   });
 </script>
 

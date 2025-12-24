@@ -38,7 +38,7 @@ def get_db_connection():
     try:
         if DB_CONFIG['trusted_connection']:
             conn_str = (
-                f'DRIVER={{ODBC Driver 18 for SQL Server}};'
+                f'DRIVER={{ODBC Driver 17 for SQL Server}};'
                 f'SERVER={DB_CONFIG["server"]};'
                 f'DATABASE={DB_CONFIG["database"]};'
                 f'Trusted_Connection=yes;'
@@ -118,6 +118,37 @@ def get_user_by_credentials(username, password):
         (username, password)
     )
     return result[0] if result else None
+
+
+# ============================================
+# PROGRESS STORAGE HELPERS (File-based) - ADD THIS AFTER get_user_by_credentials
+# ============================================
+PROGRESS_FILE = "user_progress.json"
+
+def load_progress_data():
+    """Load progress data from JSON file"""
+    try:
+        if os.path.exists(PROGRESS_FILE):
+            with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return {}
+    except Exception as e:
+        logger.error(f"Error loading progress data: {e}")
+        return {}
+
+def save_progress_data(data):
+    """Save progress data to JSON file"""
+    try:
+        with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        logger.error(f"Error saving progress data: {e}")
+        return False
+
+def get_user_progress_key(user_id, playlist_id):
+    """Generate a unique key for user progress"""
+    return f"user_{user_id}_playlist_{playlist_id}"
 
 
 # ============================================
@@ -283,6 +314,135 @@ def get_progress(user_id):
     except Exception as e:
         logger.error(f"Progress error: {e}")
         return jsonify({"message": "Internal server error"}), 500
+
+
+# ============================================
+# PROGRESS ENDPOINTS (No SQL) - ADD AFTER THE EXISTING /progress/<int:user_id> ENDPOINT
+# ============================================
+
+# -------------------------------
+# SAVE VIDEO PROGRESS (File-based)
+# -------------------------------
+@app.route('/api/progress/save', methods=['POST'])
+def save_video_progress():
+    """Save video progress without SQL"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        playlist_id = data.get('playlist_id')
+        video_id = data.get('video_id')
+        completed = data.get('completed', False)
+
+        if not all([user_id, playlist_id, video_id]):
+            return jsonify({"message": "Missing required fields"}), 400
+
+        # Load existing progress
+        progress_data = load_progress_data()
+
+        # Create user key
+        user_key = get_user_progress_key(user_id, playlist_id)
+
+        # Initialize if not exists
+        if user_key not in progress_data:
+            progress_data[user_key] = {
+                "user_id": user_id,
+                "playlist_id": playlist_id,
+                "videos": {},
+                "last_updated": datetime.now().isoformat()
+            }
+
+        # Update video progress
+        progress_data[user_key]["videos"][video_id] = {
+            "completed": completed,
+            "timestamp": datetime.now().isoformat()
+        }
+        progress_data[user_key]["last_updated"] = datetime.now().isoformat()
+
+        # Save back to file
+        if save_progress_data(progress_data):
+            return jsonify({
+                "success": True,
+                "message": "Progress saved",
+                "user_id": user_id,
+                "video_id": video_id,
+                "completed": completed
+            }), 200
+        else:
+            return jsonify({"success": False, "message": "Failed to save progress"}), 500
+
+    except Exception as e:
+        logger.error(f"Save progress error: {e}")
+        return jsonify({"success": False, "message": "Internal server error"}), 500
+
+
+# -------------------------------
+# GET USER'S PLAYLIST PROGRESS
+# -------------------------------
+@app.route('/api/progress/<int:user_id>/<string:playlist_id>', methods=['GET'])
+def get_user_playlist_progress(user_id, playlist_id):
+    """Get user's progress for a playlist"""
+    try:
+        progress_data = load_progress_data()
+        user_key = get_user_progress_key(user_id, playlist_id)
+
+        if user_key in progress_data:
+            user_progress = progress_data[user_key]
+            videos = user_progress.get("videos", {})
+
+            # Calculate completion percentage
+            completed_videos = [v for v in videos.values() if v.get("completed")]
+            total_videos = len(videos)
+            progress_percentage = 0
+
+            if total_videos > 0:
+                progress_percentage = int((len(completed_videos) / total_videos) * 100)
+
+            return jsonify({
+                "success": True,
+                "user_id": user_id,
+                "playlist_id": playlist_id,
+                "completed_videos": len(completed_videos),
+                "total_videos": total_videos,
+                "progress_percentage": progress_percentage,
+                "videos": videos,
+                "last_updated": user_progress.get("last_updated")
+            }), 200
+        else:
+            # Return empty progress if not found
+            return jsonify({
+                "success": True,
+                "user_id": user_id,
+                "playlist_id": playlist_id,
+                "completed_videos": 0,
+                "total_videos": 0,
+                "progress_percentage": 0,
+                "videos": {},
+                "last_updated": None
+            }), 200
+
+    except Exception as e:
+        logger.error(f"Get progress error: {e}")
+        return jsonify({"success": False, "message": "Internal server error"}), 500
+
+
+# -------------------------------
+# MARK VIDEO AS COMPLETED
+# -------------------------------
+@app.route('/api/progress/mark-completed', methods=['POST'])
+def mark_video_completed():
+    """Mark a video as completed for a user"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        playlist_id = data.get('playlist_id')
+        video_id = data.get('video_id')
+
+        # Call the save function with completed=true
+        return save_video_progress()
+
+    except Exception as e:
+        logger.error(f"Mark completed error: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 # -------------------------------
