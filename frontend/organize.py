@@ -5,50 +5,38 @@ import re
 # Configuration
 CSS_DIR = 'css'
 JS_DIR = 'js'
-SKIP_DIRS = {'node_modules', '.git', '.idea', '__pycache__'}
-SCRIPT_NAME = os.path.basename(__file__)
 
 
 def main():
-    print("🧹 Starting Project Cleanup...")
+    print("Rewinding project structure... ↺")
 
-    # 1. Create Directories if they don't exist
-    if not os.path.exists(CSS_DIR):
-        os.makedirs(CSS_DIR)
-        print(f"📁 Created {CSS_DIR}/ folder")
+    # 1. Move CSS files back to root
+    if os.path.exists(CSS_DIR):
+        for filename in os.listdir(CSS_DIR):
+            if filename.lower().endswith('.css'):
+                src = os.path.join(CSS_DIR, filename)
+                dst = filename
+                try:
+                    shutil.move(src, dst)
+                    print(f" <- Moved {filename} back to root")
+                except Exception as e:
+                    print(f"Error moving {filename}: {e}")
 
-    if not os.path.exists(JS_DIR):
-        os.makedirs(JS_DIR)
-        print(f"📁 Created {JS_DIR}/ folder")
+    # 2. Move JS files back to root
+    if os.path.exists(JS_DIR):
+        for filename in os.listdir(JS_DIR):
+            if filename.lower().endswith('.js'):
+                src = os.path.join(JS_DIR, filename)
+                dst = filename
+                try:
+                    shutil.move(src, dst)
+                    print(f" <- Moved {filename} back to root")
+                except Exception as e:
+                    print(f"Error moving {filename}: {e}")
 
-    # 2. Identify and Move Files
-    all_files = [f for f in os.listdir('.') if os.path.isfile(f)]
-
-    moved_css = {}  # Maps old_filename -> new_relative_path
-    moved_js = {}  # Maps old_filename -> new_relative_path
-
-    for filename in all_files:
-        if filename == SCRIPT_NAME:
-            continue  # Don't move this script itself
-
-        # Move CSS
-        if filename.lower().endswith('.css'):
-            new_path = os.path.join(CSS_DIR, filename)
-            shutil.move(filename, new_path)
-            moved_css[filename] = f"{CSS_DIR}/{filename}"
-            print(f" -> Moved {filename} to {CSS_DIR}/")
-
-        # Move JS
-        elif filename.lower().endswith('.js'):
-            new_path = os.path.join(JS_DIR, filename)
-            shutil.move(filename, new_path)
-            moved_js[filename] = f"{JS_DIR}/{filename}"
-            print(f" -> Moved {filename} to {JS_DIR}/")
-
-    # 3. Update HTML References
+    # 3. Revert HTML Links (Remove 'css/' and 'js/' prefixes)
     html_files = [f for f in os.listdir('.') if f.lower().endswith('.html')]
-
-    print(f"\n📝 Updating {len(html_files)} HTML files...")
+    print(f"\n📝 Reverting links in {len(html_files)} HTML files...")
 
     for html_file in html_files:
         with open(html_file, 'r', encoding='utf-8') as f:
@@ -56,51 +44,49 @@ def main():
 
         original_content = content
 
-        # Replace JS references (src="file.js")
-        for old_name, new_path in moved_js.items():
-            # Regex to match src="old_name" or src='./old_name'
-            # We use re.escape to handle filenames with dots or dashes safely
-            pattern = r'(src=["\'])(?:\./)?' + re.escape(old_name) + r'(["\'])'
-            content = re.sub(pattern, r'\1' + new_path + r'\2', content)
+        # Regex to remove js/ prefix from src="js/..." or src='js/...'
+        # Matches src="js/ or src='js/ (and optional ./ before it)
+        content = re.sub(r'(src=["\'])(?:\./)?js/', r'\1', content)
 
-        # Replace CSS references (href="file.css")
-        for old_name, new_path in moved_css.items():
-            pattern = r'(href=["\'])(?:\./)?' + re.escape(old_name) + r'(["\'])'
-            content = re.sub(pattern, r'\1' + new_path + r'\2', content)
+        # Regex to remove css/ prefix from href="css/..." or href='css/...'
+        content = re.sub(r'(href=["\'])(?:\./)?css/', r'\1', content)
 
         if content != original_content:
             with open(html_file, 'w', encoding='utf-8') as f:
                 f.write(content)
-            print(f"  ✅ Updated links in {html_file}")
+            print(f"  ✅ Fixed links in {html_file}")
 
-    # 4. Fix CSS Image Paths (Background images need ../ now)
-    print("\n🎨 Fixing CSS background image paths...")
+    # 4. Revert CSS Image Paths (Remove '../')
+    # Note: Files are now back in the root, so we process them there.
+    css_files = [f for f in os.listdir('.') if f.lower().endswith('.css')]
+    print(f"\n🎨 Reverting image paths in {len(css_files)} CSS files...")
 
-    for css_file in os.listdir(CSS_DIR):
-        file_path = os.path.join(CSS_DIR, css_file)
-        with open(file_path, 'r', encoding='utf-8') as f:
+    for css_file in css_files:
+        with open(css_file, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # Function to prepend ../ to urls that are not absolute or data URIs
-        def fix_css_url(match):
-            quote = match.group(1) or ""
-            url = match.group(2).strip()
+        original_content = content
 
-            # Skip if it's a web link, data URI, or already goes up a directory
-            if url.startswith(('http', 'https', 'data:', '..', '/')):
-                return match.group(0)
+        # Regex to find url('../image.png') and change to url('image.png')
+        # Captures url(" or url(' or url(
+        # Matches ../
+        content = re.sub(r'(url\s*\(\s*["\']?)\.\./', r'\1', content)
 
-            return f"url({quote}../{url}{quote})"
+        if content != original_content:
+            with open(css_file, 'w', encoding='utf-8') as f:
+                f.write(content)
+            print(f"  ✅ Fixed paths in {css_file}")
 
-        # Regex looks for url("...") or url('...') or url(...)
-        new_content = re.sub(r'url\s*\(\s*(["\']?)([^"\'\)]+)\1\s*\)', fix_css_url, content)
+    # 5. Clean up empty folders
+    if os.path.exists(CSS_DIR) and not os.listdir(CSS_DIR):
+        os.rmdir(CSS_DIR)
+        print("\n🗑️  Deleted empty 'css' folder")
 
-        if new_content != content:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(new_content)
-            print(f"  ✅ Fixed image paths in {css_file}")
+    if os.path.exists(JS_DIR) and not os.listdir(JS_DIR):
+        os.rmdir(JS_DIR)
+        print("🗑️  Deleted empty 'js' folder")
 
-    print("\n✨ Clean up complete! You can delete this script now.")
+    print("\n✨ Undo complete! Project is back to original state.")
 
 
 if __name__ == "__main__":
