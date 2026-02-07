@@ -510,6 +510,11 @@
         }
       }
     </style>
+    <script src="auth-guard.js"></script>
+    <script>
+      // 1. Lock the page immediately if not logged in
+      requireAuth();
+    </script>
   </head>
   <body>
     <div class="background-overlay"></div>
@@ -662,23 +667,14 @@
 
   // Check if user has access to this track
   async function checkVideoAccess() {
-      const user = getCurrentUser();
-      if (!user || !user.token) {
-          return false;
+      // fetchWithAuth automatically adds the token and checks login status
+      const response = await fetchWithAuth(`/api/check-video-access/${PLAYLIST_ID}`);
+      
+      if (response && response.ok) {
+          const data = await response.json();
+          return data.has_access === true;
       }
-
-      try {
-          const response = await fetch(
-              `${API_BASE_URL}/api/check-video-access/${PLAYLIST_ID}`, 
-              {
-                  headers: { 'Authorization': `Bearer ${user.token}` }
-              }
-          );
-          return response.status === 200;
-      } catch (error) {
-          console.error('Access check error:', error);
-          return false;
-      }
+      return false;
   }
 
   // Redirect to login page
@@ -1064,6 +1060,8 @@
   // INITIALIZE PAGE (SAME FOR ALL PAGES)
   // ==========================
   document.addEventListener('DOMContentLoaded', async function() {
+    await requireAuth();
+    await requireAuth();
       currentUser = getCurrentUser();
 
       const hasAccess = await checkVideoAccess();

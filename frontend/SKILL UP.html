@@ -897,7 +897,13 @@ document.querySelector(".contact_form_submit").addEventListener("click", functio
 
 
 
-
+<script src="auth-guard.js"></script>
+<script>
+  // Update the UI to show we remember the user
+  document.addEventListener('DOMContentLoaded', () => {
+      updateNavbar();
+  });
+</script>
 
 
 

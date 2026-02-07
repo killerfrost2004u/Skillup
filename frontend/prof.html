@@ -175,48 +175,9 @@ h1,h2{
 </style>
 </head>
 <body>
+    <script src="auth-guard.js"></script>
     <script>
-        // Authentication check - this runs IMMEDIATELY
-        (async function() {
-            try {
-                const token = localStorage.getItem('token');
-
-                // If no token, redirect IMMEDIATELY to login with register panel
-                if (!token) {
-                    window.location.href = "log.html?show=register";
-                    return;
-                }
-            
-                // Verify token with backend
-                const response = await fetch('http://localhost:5000/api/check-auth', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-            
-                const data = await response.json();
-
-                // If not authenticated, redirect
-                if (!data.authenticated) {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    window.location.href = "log.html?show=register";
-                    return;
-                }
-            
-                // Store user data from backend
-                if (data.user) {
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                }
-
-            } catch (error) {
-                console.error('Auth error:', error);
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = "log.html?show=register";
-            }
-        })();
+        requireAuth();
     </script>
 
 <!-- PROFILE HEADER -->
@@ -225,7 +186,7 @@ h1,h2{
         <img src="user.jpg" class="profile-pic" id="profilePic" onclick="if(editMode) document.getElementById('uploadInput').click()">
         <input type="file" id="uploadInput" style="display:none" accept="image/*" onchange="changeProfile(event)">
     </div>
-    <div style="flex:1; min: width 50px;">
+    <div style="flex:1; min-width: 50px;">
         <h2 id="studentName" contenteditable="false"></h2>
             <p id="profile-email">user@example.com</p>
        <div class="card student-card">
@@ -237,7 +198,7 @@ h1,h2{
         </div>
         </div>
         <button class="edit-btn" id="editBtn" onclick="toggleEdit()">Edit YOUR INFO</button>
-        <button class="edit-btn" id="logout-link">Logout</button>
+        <button class="edit-btn" id="logout-btn">Logout</button>
 
     </div>
 </div>
@@ -480,21 +441,14 @@ loadSavedData();
 // --- Logout Functionality ---
 // Logout دايمًا شغال
 // --- Logout Functionality ---
-document.getElementById('logout-link').addEventListener('click', () => {
+// --- Logout Functionality ---
+document.getElementById('logout-btn').addEventListener('click', () => {
     if(editMode) {
         alert("Finish editing your profile before logging out!");
         return;
     }
-
-    // Clear all local storage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userCourses');
-    localStorage.removeItem('userNotes');
-    localStorage.removeItem('userProgress');
-
-    // Redirect to login with register panel
-    window.location.href = "log.html?show=register";
+    // Use the shared function from auth-guard.js
+    handleLogout();
 });
 
 
@@ -502,26 +456,29 @@ document.getElementById('logout-link').addEventListener('click', () => {
 
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Get user from storage
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    
+    // 2. Check if user and user_id exist
+    if(storedUser && storedUser.user_id) {
+        const CURRENT_USER_ID = storedUser.user_id; // <--- NOW IT IS DYNAMIC
 
-    const CURRENT_USER_ID = 5;
+        const progressCourse = document.getElementById('progressCourse');
+        const progressValue = document.getElementById('progressValue');
+        const updateProgressBtn = document.getElementById('updateProgressBtn');
 
-
-    const progressCourse = document.getElementById('progressCourse');
-    const progressValue = document.getElementById('progressValue');
-    const updateProgressBtn = document.getElementById('updateProgressBtn');
-
-    fetch(`http://localhost:5000/get-progress/${CURRENT_USER_ID}`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.length > 0){
-                progressCourse.value = data[0].course_name;
-                progressValue.value = data[0].progress ;
-                updateProgressBtn.disabled = false;
-            }
-        })
-        .catch(err => console.error("Error fetching progress:", err));
-
+        fetch(`http://localhost:5000/get-progress/${CURRENT_USER_ID}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.length > 0){
+                    progressCourse.value = data[0].course_name;
+                    progressValue.value = data[0].progress ;
+                    updateProgressBtn.disabled = false;
+                }
+            })
+            .catch(err => console.error("Error fetching progress:", err));
+    }
 });
 </script>
 
