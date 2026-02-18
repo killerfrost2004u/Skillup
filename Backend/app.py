@@ -9,9 +9,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
-import google.genai as genai  # Updated import
 import logging
 import jwt
+import requests  # Added to communicate with local Ollama
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,9 +34,8 @@ DB_CONFIG = {
     'trusted_connection': os.getenv('DB_TRUSTED_CONNECTION', 'yes').lower() == 'yes'
 }
 
-
 # ============================================
-# JWT CONFIGURATION - ADD THIS SECTION
+# JWT CONFIGURATION
 # ============================================
 JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
 JWT_ALGORITHM = 'HS256'
@@ -73,25 +72,7 @@ def get_db_connection():
 
 
 # ============================================
-# 2. GOOGLE GEMINI CONFIGURATION (UPDATED)
-# ============================================
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-
-if not GOOGLE_API_KEY:
-    logger.warning("⚠️ GOOGLE_API_KEY not found in environment variables")
-    gemini_client = None
-else:
-    try:
-        # Configure Google Gemini with the new API
-        gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
-        logger.info(f"✅ Google Gemini client initialized (using google.genai)")
-    except Exception as e:
-        logger.error(f"❌ Failed to initialize Google Gemini: {e}")
-        gemini_client = None
-
-
-# ============================================
-# 3. DATABASE HELPER FUNCTIONS
+# 2. DATABASE HELPER FUNCTIONS
 # ============================================
 def execute_query(query, params=()):
     """Execute SQL query and return results"""
@@ -131,9 +112,10 @@ def get_user_by_credentials(username, password):
 
 
 # ============================================
-# PROGRESS STORAGE HELPERS (File-based) - ADD THIS AFTER get_user_by_credentials
+# PROGRESS STORAGE HELPERS (File-based)
 # ============================================
 PROGRESS_FILE = "user_progress.json"
+
 
 def load_progress_data():
     """Load progress data from JSON file"""
@@ -146,6 +128,7 @@ def load_progress_data():
         logger.error(f"Error loading progress data: {e}")
         return {}
 
+
 def save_progress_data(data):
     """Save progress data to JSON file"""
     try:
@@ -156,13 +139,14 @@ def save_progress_data(data):
         logger.error(f"Error saving progress data: {e}")
         return False
 
+
 def get_user_progress_key(user_id, playlist_id):
     """Generate a unique key for user progress"""
     return f"user_{user_id}_playlist_{playlist_id}"
 
 
 # ============================================
-# AUTHENTICATION MIDDLEWARE - ADD THIS
+# AUTHENTICATION MIDDLEWARE
 # ============================================
 def token_required(f):
     """Decorator to require valid JWT token"""
@@ -171,7 +155,6 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
 
-        # Check for token in headers
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             if auth_header.startswith('Bearer '):
@@ -202,32 +185,25 @@ def token_required(f):
 
 
 # ============================================
-# 4. ROUTES
+# 3. ROUTES
 # ============================================
 
-# -------------------------------
-# HOME
-# -------------------------------
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
         "status": "running",
         "service": "E-Learning Platform API",
         "database": DB_CONFIG["database"],
-        "gemini_configured": gemini_client is not None,
+        "local_ai_configured": True,
         "endpoints": {
             "register": "POST /register",
             "login": "POST /login",
             "chat": "POST /chat",
-            "courses": "GET /courses",
-            "progress": "GET /progress/<user_id>"
+            "courses": "GET /courses"
         }
     })
 
 
-# -------------------------------
-# REGISTER
-# -------------------------------
 @app.route('/register', methods=['POST'])
 def register():
     try:
@@ -258,9 +234,6 @@ def register():
         return jsonify({"message": "Internal server error"}), 500
 
 
-# -------------------------------
-# LOGIN
-# -------------------------------
 @app.route('/login', methods=['POST'])
 def login():
     try:
@@ -299,8 +272,6 @@ def check_auth():
     """Check if user is authenticated"""
     try:
         token = None
-
-        # Check for token in headers
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             if auth_header.startswith('Bearer '):
@@ -309,84 +280,78 @@ def check_auth():
         if not token:
             return jsonify({'authenticated': False}), 200
 
-        # Verify token
         data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-
-        # Check if user exists
         user = execute_query(
             "SELECT user_id, name, email, role FROM Users WHERE user_id=?",
             (data['user_id'],)
         )
 
         if user:
-            return jsonify({
-                'authenticated': True,
-                'user': user[0]
-            }), 200
+            return jsonify({'authenticated': True, 'user': user[0]}), 200
         else:
             return jsonify({'authenticated': False}), 200
 
-    except jwt.ExpiredSignatureError:
-        return jsonify({'authenticated': False}), 200
-    except jwt.InvalidTokenError:
-        return jsonify({'authenticated': False}), 200
     except Exception as e:
-        logger.error(f"Check auth error: {e}")
         return jsonify({'authenticated': False}), 200
 
 
 # -------------------------------
-# CHAT WITH GOOGLE GEMINI (UPDATED)
+# CHAT WITH LOCAL OLLAMA AI
 # -------------------------------
 @app.route('/chat', methods=['POST'])
 def chat():
-    """Handle chatbot messages using Google Gemini API"""
+    """Handle chatbot messages using local Ollama API (Llama3/Mistral)"""
     try:
-        if not gemini_client:
-            return jsonify({
-                'reply': 'AI service is currently unavailable. Please check the API configuration.',
-                'error': 'Gemini client not initialized'
-            }), 503
-
         data = request.get_json()
         user_message = data.get('message', '').strip()
 
         if not user_message:
             return jsonify({'reply': 'Please send a message.'}), 400
 
-        # Generate response using Google Gemini (new API)
-        response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash-exp",  # You can use gemini-1.5-flash or gemini-1.5-pro
-            contents=user_message,
-            config={
-                "temperature": 0.7,
-                "max_output_tokens": 500,
-                "system_instruction": "You are a helpful e-learning assistant for an Arabic educational platform. Help students with programming courses like Python, Web Development, and other technical subjects. Respond in the same language as the user's question."
-            }
-        )
+        # Create a prompt that instructs the AI on how to behave
+        system_instruction = "You are a helpful e-learning assistant for an educational platform. Help students with programming courses like Python, Web Development, and other technical subjects. Respond accurately and politely. If the user speaks Arabic, respond in Arabic."
 
-        # Extract the response text
-        bot_reply = response.text
+        prompt_text = f"System: {system_instruction}\n\nUser: {user_message}\nAssistant:"
 
+        # Call the local Ollama server
+        ollama_url = "http://localhost:11434/api/generate"
+        ollama_payload = {
+            "model": "mistral",  # Note: Change this to "mistral" if you prefer Mistral
+            "prompt": prompt_text,
+            "stream": False
+        }
+
+        response = requests.post(ollama_url, json=ollama_payload, timeout=120)
+
+        if response.status_code == 200:
+            bot_reply = response.json().get('response', '')
+            return jsonify({
+                'reply': bot_reply,
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            logger.error(f"Ollama API Error: {response.text}")
+            return jsonify({
+                'reply': 'عذراً، الخادم المحلي للذكاء الاصطناعي يواجه مشكلة الآن.',
+                'error': 'Ollama responded with an error.'
+            }), 500
+
+    except requests.exceptions.ConnectionError:
+        logger.error("Could not connect to Ollama on localhost:11434")
         return jsonify({
-            'reply': bot_reply,
-            'timestamp': datetime.now().isoformat()
-        })
-
+            'reply': 'عذراً، لا يمكنني الاتصال بمحرك الذكاء الاصطناعي حالياً. تأكد من تشغيل Ollama.',
+            'error': 'Connection Refused'
+        }), 503
     except Exception as e:
         logger.error(f"Chat error: {e}")
         return jsonify({
-            'reply': 'عذراً، حدث خطأ في معالجة طلبك. الرجاء المحاولة مرة أخرى.',
+            'reply': 'عذراً، حدث خطأ في معالجة طلبك.',
             'error': str(e)
         }), 500
 
 
-# -------------------------------
-# GET COURSES
-# -------------------------------
 @app.route('/courses', methods=['GET'])
 def get_courses():
-    """Get all courses"""
     try:
         courses = execute_query("SELECT * FROM Courses")
         if courses is not None:
@@ -394,16 +359,11 @@ def get_courses():
         else:
             return jsonify({"message": "Failed to fetch courses"}), 500
     except Exception as e:
-        logger.error(f"Get courses error: {e}")
         return jsonify({"message": "Internal server error"}), 500
 
 
-# -------------------------------
-# GET USER PROGRESS
-# -------------------------------
 @app.route('/progress/<int:user_id>', methods=['GET'])
 def get_progress(user_id):
-    """Get user's course progress"""
     try:
         return jsonify({
             "user_id": user_id,
@@ -413,20 +373,11 @@ def get_progress(user_id):
             ]
         }), 200
     except Exception as e:
-        logger.error(f"Progress error: {e}")
         return jsonify({"message": "Internal server error"}), 500
 
 
-# ============================================
-# PROGRESS ENDPOINTS (No SQL) - ADD AFTER THE EXISTING /progress/<int:user_id> ENDPOINT
-# ============================================
-
-# -------------------------------
-# SAVE VIDEO PROGRESS (File-based)
-# -------------------------------
 @app.route('/api/progress/save', methods=['POST'])
 def save_video_progress():
-    """Save video progress without SQL"""
     try:
         data = request.get_json()
         user_id = data.get('user_id')
@@ -437,13 +388,9 @@ def save_video_progress():
         if not all([user_id, playlist_id, video_id]):
             return jsonify({"message": "Missing required fields"}), 400
 
-        # Load existing progress
         progress_data = load_progress_data()
-
-        # Create user key
         user_key = get_user_progress_key(user_id, playlist_id)
 
-        # Initialize if not exists
         if user_key not in progress_data:
             progress_data[user_key] = {
                 "user_id": user_id,
@@ -452,36 +399,26 @@ def save_video_progress():
                 "last_updated": datetime.now().isoformat()
             }
 
-        # Update video progress
         progress_data[user_key]["videos"][video_id] = {
             "completed": completed,
             "timestamp": datetime.now().isoformat()
         }
         progress_data[user_key]["last_updated"] = datetime.now().isoformat()
 
-        # Save back to file
         if save_progress_data(progress_data):
             return jsonify({
-                "success": True,
-                "message": "Progress saved",
-                "user_id": user_id,
-                "video_id": video_id,
-                "completed": completed
+                "success": True, "message": "Progress saved",
+                "user_id": user_id, "video_id": video_id, "completed": completed
             }), 200
         else:
             return jsonify({"success": False, "message": "Failed to save progress"}), 500
 
     except Exception as e:
-        logger.error(f"Save progress error: {e}")
         return jsonify({"success": False, "message": "Internal server error"}), 500
 
 
-# -------------------------------
-# GET USER'S PLAYLIST PROGRESS
-# -------------------------------
 @app.route('/api/progress/<int:user_id>/<string:playlist_id>', methods=['GET'])
 def get_user_playlist_progress(user_id, playlist_id):
-    """Get user's progress for a playlist"""
     try:
         progress_data = load_progress_data()
         user_key = get_user_progress_key(user_id, playlist_id)
@@ -489,137 +426,92 @@ def get_user_playlist_progress(user_id, playlist_id):
         if user_key in progress_data:
             user_progress = progress_data[user_key]
             videos = user_progress.get("videos", {})
-
-            # Calculate completion percentage
             completed_videos = [v for v in videos.values() if v.get("completed")]
             total_videos = len(videos)
-            progress_percentage = 0
-
-            if total_videos > 0:
-                progress_percentage = int((len(completed_videos) / total_videos) * 100)
+            progress_percentage = int((len(completed_videos) / total_videos) * 100) if total_videos > 0 else 0
 
             return jsonify({
-                "success": True,
-                "user_id": user_id,
-                "playlist_id": playlist_id,
-                "completed_videos": len(completed_videos),
-                "total_videos": total_videos,
-                "progress_percentage": progress_percentage,
-                "videos": videos,
+                "success": True, "user_id": user_id, "playlist_id": playlist_id,
+                "completed_videos": len(completed_videos), "total_videos": total_videos,
+                "progress_percentage": progress_percentage, "videos": videos,
                 "last_updated": user_progress.get("last_updated")
             }), 200
         else:
-            # Return empty progress if not found
             return jsonify({
-                "success": True,
-                "user_id": user_id,
-                "playlist_id": playlist_id,
-                "completed_videos": 0,
-                "total_videos": 0,
-                "progress_percentage": 0,
-                "videos": {},
-                "last_updated": None
+                "success": True, "user_id": user_id, "playlist_id": playlist_id,
+                "completed_videos": 0, "total_videos": 0, "progress_percentage": 0,
+                "videos": {}, "last_updated": None
             }), 200
-
     except Exception as e:
-        logger.error(f"Get progress error: {e}")
         return jsonify({"success": False, "message": "Internal server error"}), 500
 
 
-# -------------------------------
-# MARK VIDEO AS COMPLETED
-# -------------------------------
 @app.route('/api/progress/mark-completed', methods=['POST'])
 def mark_video_completed():
-    """Mark a video as completed for a user"""
     try:
         data = request.get_json()
-        user_id = data.get('user_id')
-        playlist_id = data.get('playlist_id')
-        video_id = data.get('video_id')
-
-        # Call the save function with completed=true
         return save_video_progress()
-
     except Exception as e:
-        logger.error(f"Mark completed error: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-# -------------------------------
-# CHECK VIDEO ACCESS (PROTECTED)
-# -------------------------------
 @app.route('/api/check-video-access/<string:playlist_id>', methods=['GET'])
-@token_required  # <-- This protects the endpoint
+@token_required
 def check_video_access(playlist_id):
-    """Check if user has access to playlist videos"""
     try:
         user_id = request.current_user['user_id']
-
-        # Here you can add additional checks:
-        # - If user purchased this course
-        # - If user is subscribed
-        # - Any other business logic
-
         return jsonify({
-            "has_access": True,
-            "user_id": user_id,
-            "playlist_id": playlist_id,
-            "message": "Access granted"
+            "has_access": True, "user_id": user_id,
+            "playlist_id": playlist_id, "message": "Access granted"
         }), 200
-
     except Exception as e:
-        logger.error(f"Check access error: {e}")
         return jsonify({"message": "Internal server error"}), 500
 
 
-# -------------------------------
-# HEALTH CHECK
-# -------------------------------
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
     return jsonify({
         "status": "healthy",
         "database": DB_CONFIG["database"],
         "database_connected": get_db_connection() is not None,
-        "gemini_configured": gemini_client is not None,
+        "local_ai_configured": True,
         "timestamp": datetime.now().isoformat()
     }), 200
 
 
 # -------------------------------
-# TEST GEMINI (UPDATED)
+# TEST LOCAL OLLAMA AI
 # -------------------------------
-@app.route('/test-gemini', methods=['GET'])
-def test_gemini():
-    """Test Google Gemini API connection"""
-    if not gemini_client:
-        return jsonify({
-            "status": "error",
-            "message": "Gemini client not initialized. Check GOOGLE_API_KEY in .env file."
-        }), 400
-
+@app.route('/test-ollama', methods=['GET'])
+def test_ollama():
+    """Test connection to local Ollama"""
     try:
-        response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash-exp",
-            contents="Say 'Hello World' in Arabic"
-        )
+        response = requests.post("http://localhost:11434/api/generate", json={
+            "model": "llama3",
+            "prompt": "Say 'Hello World' in Arabic",
+            "stream": False
+        }, timeout=10)
 
-        return jsonify({
-            "status": "success",
-            "message": "Google Gemini API is working!",
-            "response": response.text
-        })
+        if response.status_code == 200:
+            return jsonify({
+                "status": "success",
+                "message": "Local Ollama API is working!",
+                "response": response.json().get('response', '')
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": f"Ollama returned status code {response.status_code}"
+            }), 500
     except Exception as e:
         return jsonify({
             "status": "error",
-            "message": str(e)
+            "message": f"Could not connect to Ollama. Ensure the Ollama app is running. Error: {str(e)}"
         }), 500
 
 
 # ============================================
-# 5. MAIN ENTRY POINT
+# 4. MAIN ENTRY POINT
 # ============================================
 if __name__ == '__main__':
     print("\n" + "=" * 50)
@@ -627,14 +519,7 @@ if __name__ == '__main__':
     print("=" * 50)
     print(f"📊 Database: {DB_CONFIG['database']}")
     print(f"🔌 Database Server: {DB_CONFIG['server']}")
-    print(f"🤖 Google Gemini Configured: {'Yes ✅' if gemini_client else 'No ❌'}")
-    print(f"📚 Using google.genai package (new API)")
-
-    if not gemini_client and GOOGLE_API_KEY:
-        print(f"⚠️  GOOGLE_API_KEY found but client failed to initialize")
-    elif not GOOGLE_API_KEY:
-        print(f"⚠️  GOOGLE_API_KEY not found in environment")
-
+    print(f"🤖 Local AI: Ollama (Llama 3 / Mistral)")
     print(f"🌐 Server will run on: http://localhost:5000")
     print("=" * 50 + "\n")
 
