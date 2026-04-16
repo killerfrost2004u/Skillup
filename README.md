@@ -11,70 +11,82 @@
 
 In an era of information overload, **Skillup** helps learners stay focused by providing a clean, intuitive interface to manage courses and visualize progress. Whether you are a self-taught developer or a university student, Skillup acts as your personal learning companion.
 
-The platform features a robust backend powered by **Flask** and **SQL Server**, with an intelligent chatbot integration using **Google Gemini AI**.
+The platform features a robust backend powered by **Flask** and **SQL Server**, with a dual intelligent chatbot integration supporting both **Local Ollama (Llama 3.2)** and cloud-based **OpenAI (GPT-3.5 Turbo)**.
 
 ## 🌟 Key Features
 
-* **🤖 AI Learning Assistant:** Integrated Chatbot powered by **Google Gemini 2.0 Flash** to answer student queries in real-time.
-* **📊 Smart Progress Tracking:** Tracks video and playlist completion rates using a hybrid system (SQL & JSON), visualizing growth via dynamic dashboards.
-* **🔐 Secure Authentication:** User registration and login system protected by **JWT (JSON Web Tokens)**.
-* **🛣️ Structured Learning Tracks:** Curated paths for Frontend, Backend, Python, Full Stack, and Software Testing.
-* **📂 Resource Management:** dynamic handling of courses, lectures, and educational resources.
-* **📱 Responsive Design:** Fully optimized interface using HTML5, CSS3, and Bootstrap for desktop and mobile.
-* **📰 Tech Blog:** Integrated blog section featuring the latest trends in AI, Programming, and Soft Skills.
+- **🤖 AI Learning Assistant:** Integrated Chatbots powered by **Llama 3.2** (running locally via Ollama in `app.py`) and **GPT-3.5 Turbo** (via OpenAI API in `bot.py`) to answer student queries in real-time.
+- **📊 Smart Progress Tracking:** Tracks video and playlist completion rates using a hybrid system (SQL & JSON), visualizing growth via dynamic dashboards.
+- **🔐 Secure Authentication:** User registration and login system protected by **JWT (JSON Web Tokens)**.
+- **🛣️ Structured Learning Tracks:** Curated paths for Frontend, Backend, Python, Full Stack, and Software Testing.
+- **📂 Resource Management:** dynamic handling of courses, lectures, and educational resources.
+- **📱 Responsive Design:** Fully optimized interface using HTML5, CSS3, and Bootstrap for desktop and mobile.
+- **📰 Tech Blog:** Integrated blog section featuring the latest trends in AI, Programming, and Soft Skills.
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-* **Languages:** HTML5, CSS3, JavaScript
-* **Libraries:** Bootstrap, Swiper.js (for sliders), LottieFiles (for animations), FontAwesome
-* **Styling:** Custom CSS with responsive layouts
+
+- **Languages:** HTML5, CSS3, JavaScript
+- **Libraries:** Bootstrap, Swiper.js (for sliders), LottieFiles (for animations), FontAwesome
+- **Styling:** Custom CSS with responsive layouts
 
 ### Backend
-* **Framework:** Flask (Python)
-* **AI Integration:** Google GenAI SDK (`google.genai`)
-* **Authentication:** PyJWT
-* **Utilities:** Flask-CORS, Python-Dotenv
+
+- **Framework:** Flask (Python)
+- **AI Integration:** Local Ollama (`Llama 3.2` via `requests`) & OpenAI API (`gpt-3.5-turbo` via `openai`)
+- **Authentication:** PyJWT
+- **Utilities:** Flask-CORS, Python-Dotenv
 
 ### Database
-* **RDBMS:** Microsoft SQL Server
-* **Driver:** PyODBC
-* **Data Storage:** Hybrid approach using SQL Tables for user data and JSON for lightweight progress caching.
+
+- **RDBMS:** Microsoft SQL Server
+- **Driver:** PyODBC
+- **Data Storage:** Hybrid approach using SQL Tables for user data and JSON for lightweight progress caching.
 
 ## ⚡ Getting Started
 
 Follow these instructions to get the project up and running on your local machine.
 
 ### Prerequisites
+
 Ensure you have the following installed:
-* [Python 3.x](https://www.python.org/downloads/)
-* [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (Express or Developer edition)
-* [Git](https://git-scm.com/)
+
+- [Python 3.x](https://www.python.org/downloads/)
+- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (Express or Developer edition)
+- [Ollama] (For running the local Llama 3.2 AI model)
+- [Git](https://git-scm.com/)
+
 
 ### Installation
 
 1.  **Clone the repository**
+
     ```bash
     git clone [https://github.com/killerfrost2004u/Skillup.git](https://github.com/killerfrost2004u/Skillup.git)
     cd Skillup
     ```
 
 2.  **Set up the Database**
-    * Open SQL Server Management Studio (SSMS).
-    * Run the script located in `Data Base/Tabels.sql` to create the `skill_up` database and necessary tables (`Users`, `Courses`, `Tracks`, etc.).
+    - Open SQL Server Management Studio (SSMS).
+    - Run the script located in `Data Base/Tabels.sql` to create the `skill_up` database and necessary tables (`Users`, `Courses`, `Tracks`, etc.).
 
 3.  **Backend Setup**
     Navigate to the backend directory:
+
     ```bash
     cd Backend
     ```
+
     Install Python dependencies:
+
     ```bash
     pip install -r ../requirements.txt
     ```
 
 4.  **Environment Configuration**
     Create a `.env` file in the `Backend` directory and add your credentials:
+
     ```env
     DB_SERVER=localhost\SQLEXPRESS
     DB_NAME=skill_up
@@ -82,45 +94,51 @@ Ensure you have the following installed:
     DB_PASSWORD=your_db_password
     DB_TRUSTED_CONNECTION=yes
     JWT_SECRET=your_super_secret_key
-    GOOGLE_API_KEY=your_google_gemini_api_key
+        OPENAI_API_KEY=your_openai_api_key
     ```
 
 5.  **Run the Application**
-    Start the Flask server:
+    Start the Ollama server (with Llama 3.2) and the Flask server:
+
     ```bash
+        ollama run llama3.2
     python app.py
     ```
+
     The API will run at `http://localhost:5000`.
+
+    _(Alternatively, run `python bot.py` to use the OpenAI GPT-3.5-turbo API server on port 5000)._
 
 6.  **Launch Frontend**
     Open `frontend/SKILL UP.html` in your browser or use the "Live Server" extension in VS Code.
 
 ## 📡 API Endpoints
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/register` | Register a new user |
-| `POST` | `/login` | Authenticate user and receive JWT |
-| `POST` | `/chat` | Send message to Gemini AI Bot |
-| `GET` | `/courses` | Retrieve list of available courses |
-| `POST` | `/api/progress/save` | Save video completion status |
-| `GET` | `/api/progress/<id>/<playlist>` | Get specific playlist progress |
+| Method | Endpoint                        | Description                        |
+| :----- | :------------------------------ | :--------------------------------- |
+| `POST` | `/register`                     | Register a new user                |
+| `POST` | `/login`                        | Authenticate user and receive JWT  |
+| `POST` | `/chat`                         | Send message to Gemini AI Bot      |
+| `GET`  | `/courses`                      | Retrieve list of available courses |
+| `POST` | `/api/progress/save`            | Save video completion status       |
+| `GET`  | `/api/progress/<id>/<playlist>` | Get specific playlist progress     |
 
 ## 🤝 Collaborators
 
 This project is brought to you by an amazing team of developers:
 
-* **Ibrahim Yasser** - [@killerfrost2004u](https://github.com/killerfrost2004u)
-* **Osama Hilalia** - [@osamahilalia-cmd](https://github.com/osamahilalia-cmd)
-* **Dina Kamel** - [@dinaaakamelll-ctrl](https://github.com/dinaaakamelll-ctrl)
-* **Baraa Mostafa** - [@baraa244](https://github.com/baraa244)
-* **Aya Mohammed** - [@aya878](https://github.com/aya878)
-* **Sara Osama**
-* **Eslam EL-Araby**
+- **Ibrahim Yasser** - [@killerfrost2004u](https://github.com/killerfrost2004u)
+- **Osama Hilalia** - [@osamahilalia-cmd](https://github.com/osamahilalia-cmd)
+- **Dina Kamel** - [@dinaaakamelll-ctrl](https://github.com/dinaaakamelll-ctrl)
+- **Baraa Mostafa** - [@baraa244](https://github.com/baraa244)
+- **Aya Mohammed** - [@aya878](https://github.com/aya878)
+- **Sara Osama**
+- **Eslam EL-Araby**
 
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
-*If you find this project useful, please give it a star on GitHub! ⭐️*
+
+_If you find this project useful, please give it a star on GitHub! ⭐️_

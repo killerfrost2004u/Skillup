@@ -316,12 +316,12 @@ def chat():
         # Call the local Ollama server
         ollama_url = "http://localhost:11434/api/generate"
         ollama_payload = {
-            "model": "mistral",  # Note: Change this to "mistral" if you prefer Mistral
+            "model": "llama3.2",
             "prompt": prompt_text,
             "stream": False
         }
 
-        response = requests.post(ollama_url, json=ollama_payload, timeout=120)
+        response = requests.post(ollama_url, json=ollama_payload, timeout=None)
 
         if response.status_code == 200:
             bot_reply = response.json().get('response', '')
@@ -487,10 +487,10 @@ def test_ollama():
     """Test connection to local Ollama"""
     try:
         response = requests.post("http://localhost:11434/api/generate", json={
-            "model": "llama3",
+            "model": "llama3.2",
             "prompt": "Say 'Hello World' in Arabic",
             "stream": False
-        }, timeout=10)
+        }, timeout=None)
 
         if response.status_code == 200:
             return jsonify({
