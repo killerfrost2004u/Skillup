@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     { "src": "api/index.py", "use": "@vercel/python" },
-    { "src": "Frontend/**", "use": "@vercel/static" }
+    { "src": "frontend/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "api/index.py" },
@@ -13,7 +13,7 @@
     { "src": "/courses", "dest": "api/index.py" },
     { "src": "/get-progress/(.*)", "dest": "api/index.py" },
     { "src": "/health", "dest": "api/index.py" },
-    { "src": "/", "dest": "Frontend/index.html" },
-    { "src": "/(.*)", "dest": "Frontend/$1" }
+    { "src": "/", "dest": "frontend/index.html" },
+    { "src": "/(.*)", "dest": "frontend/$1" }
   ]
 }
