@@ -113,22 +113,6 @@ def token_required(f):
 # 3. ROUTES
 # ============================================
 
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "status": "running",
-        "service": "E-Learning Platform API",
-        "database": "PostgreSQL (Neon)",
-        "local_ai_configured": True,
-        "endpoints": {
-            "register": "POST /register",
-            "login": "POST /login",
-            "chat": "POST /chat",
-            "courses": "GET /courses",
-            "update_profile": "POST /update-profile"
-        }
-    })
-
 @app.route('/register', methods=['POST'])
 def register():
     try:

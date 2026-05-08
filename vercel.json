@@ -1,14 +1,15 @@
 {
+  "cleanUrls": true,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/api/:path*", "destination": "/api/index.py" },
     { "source": "/register", "destination": "/api/index.py" },
     { "source": "/login", "destination": "/api/index.py" },
     { "source": "/chat", "destination": "/api/index.py" },
     { "source": "/update-profile", "destination": "/api/index.py" },
     { "source": "/courses", "destination": "/api/index.py" },
-    { "source": "/get-progress/(.*)", "destination": "/api/index.py" },
+    { "source": "/get-progress/:path*", "destination": "/api/index.py" },
     { "source": "/health", "destination": "/api/index.py" },
     { "source": "/", "destination": "/Frontend/index.html" },
-    { "source": "/(.*)", "destination": "/Frontend/$1" }
+    { "source": "/:path*", "destination": "/Frontend/:path*" }
   ]
 }
