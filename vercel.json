@@ -1,51 +1,14 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "Backend/app.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "Frontend/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "Backend/app.py"
-    },
-    {
-      "src": "/register",
-      "dest": "Backend/app.py"
-    },
-    {
-      "src": "/login",
-      "dest": "Backend/app.py"
-    },
-    {
-      "src": "/chat",
-      "dest": "Backend/app.py"
-    },
-    {
-      "src": "/update-profile",
-      "dest": "Backend/app.py"
-    },
-    {
-      "src": "/courses",
-      "dest": "Backend/app.py"
-    },
-    {
-      "src": "/get-progress/(.*)",
-      "dest": "Backend/app.py"
-    },
-    {
-      "src": "/health",
-      "dest": "Backend/app.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "Frontend/$1"
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/register", "destination": "/api/index.py" },
+    { "source": "/login", "destination": "/api/index.py" },
+    { "source": "/chat", "destination": "/api/index.py" },
+    { "source": "/update-profile", "destination": "/api/index.py" },
+    { "source": "/courses", "destination": "/api/index.py" },
+    { "source": "/get-progress/(.*)", "destination": "/api/index.py" },
+    { "source": "/health", "destination": "/api/index.py" },
+    { "source": "/", "destination": "/Frontend/index.html" },
+    { "source": "/(.*)", "destination": "/Frontend/$1" }
   ]
 }
