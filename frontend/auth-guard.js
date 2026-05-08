@@ -1,5 +1,5 @@
 // frontend/auth-guard.js
-const API_BASE_URL = 'http://127.0.0.1:5000';
+const API_BASE_URL = window.location.origin === 'http://127.0.0.1:5500' || window.location.origin === 'http://localhost:5500' ? 'http://127.0.0.1:5000' : '';
 
 // 1. Check if user is logged in locally
 function isAuthenticated() {

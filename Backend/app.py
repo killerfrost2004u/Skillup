@@ -1,17 +1,15 @@
-from flask import Flask, request, jsonify
+﻿from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import wraps
-import pyodbc
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import os
 import json
 from datetime import datetime, timedelta
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 from dotenv import load_dotenv
 import logging
 import jwt
-import requests  # Added to communicate with local Ollama
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,74 +24,42 @@ CORS(app)
 # ============================================
 # 1. DATABASE CONFIGURATION
 # ============================================
-DB_CONFIG = {
-    'server': os.getenv('DB_SERVER', 'localhost\\SQLEXPRESS'),
-    'database': os.getenv('DB_NAME', 'elearning_platform'),
-    'username': os.getenv('DB_USERNAME', ''),
-    'password': os.getenv('DB_PASSWORD', ''),
-    'trusted_connection': os.getenv('DB_TRUSTED_CONNECTION', 'yes').lower() == 'yes'
-}
-
-# ============================================
-# JWT CONFIGURATION
-# ============================================
+DATABASE_URL = os.getenv('DATABASE_URL')
 JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRY_HOURS = 24
 
-
 def get_db_connection():
-    """Get SQL Server database connection"""
+    """Get PostgreSQL database connection"""
     try:
-        if DB_CONFIG['trusted_connection']:
-            conn_str = (
-                f'DRIVER={{ODBC Driver 17 for SQL Server}};'
-                f'SERVER={DB_CONFIG["server"]};'
-                f'DATABASE={DB_CONFIG["database"]};'
-                f'Trusted_Connection=yes;'
-                f'TrustServerCertificate=yes;'
-            )
-        else:
-            conn_str = (
-                f'DRIVER={{ODBC Driver 18 for SQL Server}};'
-                f'SERVER={DB_CONFIG["server"]};'
-                f'DATABASE={DB_CONFIG["database"]};'
-                f'UID={DB_CONFIG["username"]};'
-                f'PWD={DB_CONFIG["password"]};'
-                f'TrustServerCertificate=yes;'
-            )
-
-        conn = pyodbc.connect(conn_str)
-        logger.info(f"✅ Connected to SQL Server: {DB_CONFIG['database']}")
+        conn = psycopg2.connect(DATABASE_URL)
         return conn
     except Exception as e:
         logger.error(f"❌ Database connection failed: {e}")
         return None
 
-
 # ============================================
 # 2. DATABASE HELPER FUNCTIONS
 # ============================================
-def execute_query(query, params=()):
+def execute_query(query, params=(), fetch_one=False, fetch_all=False):
     """Execute SQL query and return results"""
     conn = get_db_connection()
     if not conn:
         return None
 
     try:
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-
-        if query.strip().upper().startswith('SELECT'):
-            columns = [column[0] for column in cursor.description]
-            rows = cursor.fetchall()
-            result = []
-            for row in rows:
-                result.append(dict(zip(columns, row)))
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, params)
+            
+            if fetch_one:
+                result = cursor.fetchone()
+            elif fetch_all:
+                result = cursor.fetchall()
+            else:
+                conn.commit()
+                result = True
+            
             return result
-        else:
-            conn.commit()
-            return True
     except Exception as e:
         logger.error(f"❌ Query error: {e}")
         return None
@@ -101,60 +67,22 @@ def execute_query(query, params=()):
         if conn:
             conn.close()
 
-
 def get_user_by_credentials(username, password):
     """Get user by username and password"""
-    result = execute_query(
-        "SELECT user_id, name, email, role FROM Users WHERE name=? AND password=?",
-        (username, password)
+    return execute_query(
+        "SELECT user_id, name, email, role, profile_image, age, year, major, college FROM Users WHERE name=%s AND password=%s",
+        (username, password),
+        fetch_one=True
     )
-    return result[0] if result else None
-
-
-# ============================================
-# PROGRESS STORAGE HELPERS (File-based)
-# ============================================
-PROGRESS_FILE = "user_progress.json"
-
-
-def load_progress_data():
-    """Load progress data from JSON file"""
-    try:
-        if os.path.exists(PROGRESS_FILE):
-            with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        return {}
-    except Exception as e:
-        logger.error(f"Error loading progress data: {e}")
-        return {}
-
-
-def save_progress_data(data):
-    """Save progress data to JSON file"""
-    try:
-        with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        return True
-    except Exception as e:
-        logger.error(f"Error saving progress data: {e}")
-        return False
-
-
-def get_user_progress_key(user_id, playlist_id):
-    """Generate a unique key for user progress"""
-    return f"user_{user_id}_playlist_{playlist_id}"
-
 
 # ============================================
 # AUTHENTICATION MIDDLEWARE
 # ============================================
 def token_required(f):
     """Decorator to require valid JWT token"""
-
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             if auth_header.startswith('Bearer '):
@@ -166,23 +94,20 @@ def token_required(f):
         try:
             data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
             current_user = execute_query(
-                "SELECT user_id, name, email, role FROM Users WHERE user_id=?",
-                (data['user_id'],)
+                "SELECT user_id, name, email, role FROM Users WHERE user_id=%s",
+                (data['user_id'],),
+                fetch_one=True
             )
             if not current_user:
                 return jsonify({'message': 'User not found!'}), 401
-
-            request.current_user = current_user[0]
-
+            request.current_user = current_user
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired!'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'message': 'Invalid token!'}), 401
 
         return f(*args, **kwargs)
-
     return decorated
-
 
 # ============================================
 # 3. ROUTES
@@ -193,16 +118,16 @@ def home():
     return jsonify({
         "status": "running",
         "service": "E-Learning Platform API",
-        "database": DB_CONFIG["database"],
+        "database": "PostgreSQL (Neon)",
         "local_ai_configured": True,
         "endpoints": {
             "register": "POST /register",
             "login": "POST /login",
             "chat": "POST /chat",
-            "courses": "GET /courses"
+            "courses": "GET /courses",
+            "update_profile": "POST /update-profile"
         }
     })
-
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -216,12 +141,12 @@ def register():
         if not all([username, email, password]):
             return jsonify({"message": "Missing required fields"}), 400
 
-        existing = execute_query("SELECT * FROM Users WHERE email=?", (email,))
+        existing = execute_query("SELECT * FROM Users WHERE email=%s", (email,), fetch_one=True)
         if existing:
             return jsonify({"message": "Email already exists"}), 400
 
         success = execute_query(
-            "INSERT INTO Users (name, email, password, role) VALUES (?, ?, ?, ?)",
+            "INSERT INTO Users (name, email, password, role) VALUES (%s, %s, %s, %s)",
             (username, email, password, role)
         )
 
@@ -232,7 +157,6 @@ def register():
     except Exception as e:
         logger.error(f"Register error: {e}")
         return jsonify({"message": "Internal server error"}), 500
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -257,6 +181,11 @@ def login():
                 "name": user["name"],
                 "email": user["email"],
                 "role": user["role"],
+                "profile_image": user["profile_image"] or "user.jpg",
+                "age": user["age"] or 20,
+                "year": user["year"] or "Year",
+                "major": user["major"] or "Computer",
+                "college": user["college"] or "College",
                 "token": token,
                 "message": "Login successful"
             }), 200
@@ -266,10 +195,8 @@ def login():
         logger.error(f"Login error: {e}")
         return jsonify({"message": "Internal server error"}), 500
 
-
 @app.route('/api/check-auth', methods=['GET'])
 def check_auth():
-    """Check if user is authenticated"""
     try:
         token = None
         if 'Authorization' in request.headers:
@@ -282,18 +209,42 @@ def check_auth():
 
         data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user = execute_query(
-            "SELECT user_id, name, email, role FROM Users WHERE user_id=?",
-            (data['user_id'],)
+            "SELECT user_id, name, email, role FROM Users WHERE user_id=%s",
+            (data['user_id'],),
+            fetch_one=True
         )
 
         if user:
-            return jsonify({'authenticated': True, 'user': user[0]}), 200
+            return jsonify({'authenticated': True, 'user': user}), 200
         else:
             return jsonify({'authenticated': False}), 200
-
     except Exception as e:
         return jsonify({'authenticated': False}), 200
 
+@app.route('/update-profile', methods=['POST'])
+def update_profile():
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        profile_image = data.get('profile_image')
+        age = data.get('age')
+        year = data.get('year')
+        major = data.get('major')
+        college = data.get('college')
+
+        success = execute_query(
+            "UPDATE Users SET name=%s, profile_image=%s, age=%s, year=%s, major=%s, college=%s WHERE email=%s",
+            (name, profile_image, age, year, major, college, email)
+        )
+
+        if success:
+            return jsonify({"message": "Profile updated successfully"}), 200
+        else:
+            return jsonify({"message": "Failed to update profile"}), 500
+    except Exception as e:
+        logger.error(f"Update profile error: {e}")
+        return jsonify({"message": "Internal server error"}), 500
 
 # -------------------------------
 # CHAT WITH LOCAL OLLAMA AI
@@ -308,12 +259,9 @@ def chat():
         if not user_message:
             return jsonify({'reply': 'Please send a message.'}), 400
 
-        # Create a prompt that instructs the AI on how to behave
         system_instruction = "You are a helpful e-learning assistant for an educational platform. Help students with programming courses like Python, Web Development, and other technical subjects. Respond accurately and politely. If the user speaks Arabic, respond in Arabic."
-
         prompt_text = f"System: {system_instruction}\n\nUser: {user_message}\nAssistant:"
 
-        # Call the local Ollama server
         ollama_url = "http://localhost:11434/api/generate"
         ollama_payload = {
             "model": "llama3.2",
@@ -330,14 +278,12 @@ def chat():
                 'timestamp': datetime.now().isoformat()
             })
         else:
-            logger.error(f"Ollama API Error: {response.text}")
             return jsonify({
                 'reply': 'عذراً، الخادم المحلي للذكاء الاصطناعي يواجه مشكلة الآن.',
                 'error': 'Ollama responded with an error.'
             }), 500
 
     except requests.exceptions.ConnectionError:
-        logger.error("Could not connect to Ollama on localhost:11434")
         return jsonify({
             'reply': 'عذراً، لا يمكنني الاتصال بمحرك الذكاء الاصطناعي حالياً. تأكد من تشغيل Ollama.',
             'error': 'Connection Refused'
@@ -349,32 +295,21 @@ def chat():
             'error': str(e)
         }), 500
 
-
 @app.route('/courses', methods=['GET'])
 def get_courses():
-    try:
-        courses = execute_query("SELECT * FROM Courses")
-        if courses is not None:
-            return jsonify(courses), 200
-        else:
-            return jsonify({"message": "Failed to fetch courses"}), 500
-    except Exception as e:
-        return jsonify({"message": "Internal server error"}), 500
+    courses = execute_query("SELECT * FROM Courses", fetch_all=True)
+    return jsonify(courses or []), 200
 
-
-@app.route('/progress/<int:user_id>', methods=['GET'])
+@app.route('/get-progress/<int:user_id>', methods=['GET'])
 def get_progress(user_id):
-    try:
-        return jsonify({
-            "user_id": user_id,
-            "progress": [
-                {"course": "Python Basics", "progress": 65},
-                {"course": "Web Development", "progress": 30}
-            ]
-        }), 200
-    except Exception as e:
-        return jsonify({"message": "Internal server error"}), 500
-
+    progress = execute_query(
+        "SELECT playlist_id, overall_progress as progress, completed_videos, total_videos FROM PlaylistProgress WHERE user_id=%s",
+        (user_id,),
+        fetch_all=True
+    )
+    if progress:
+        return jsonify([{"course_name": p['playlist_id'], "progress": p['progress']} for p in progress]), 200
+    return jsonify([]), 200
 
 @app.route('/api/progress/save', methods=['POST'])
 def save_video_progress():
@@ -384,146 +319,87 @@ def save_video_progress():
         playlist_id = data.get('playlist_id')
         video_id = data.get('video_id')
         completed = data.get('completed', False)
+        
+        overall_progress = data.get('overall_progress')
+        completed_videos = data.get('completed_videos')
+        total_videos = data.get('total_videos')
 
-        if not all([user_id, playlist_id, video_id]):
-            return jsonify({"message": "Missing required fields"}), 400
+        if video_id:
+            execute_query(
+                "INSERT INTO VideoProgress (user_id, playlist_id, video_id, completed) VALUES (%s, %s, %s, %s) "
+                "ON CONFLICT (user_id, playlist_id, video_id) DO UPDATE SET completed=EXCLUDED.completed, updated_at=CURRENT_TIMESTAMP",
+                (user_id, playlist_id, video_id, completed)
+            )
 
-        progress_data = load_progress_data()
-        user_key = get_user_progress_key(user_id, playlist_id)
+        if overall_progress is not None:
+            execute_query(
+                "INSERT INTO PlaylistProgress (user_id, playlist_id, overall_progress, completed_videos, total_videos) VALUES (%s, %s, %s, %s, %s) "
+                "ON CONFLICT (user_id, playlist_id) DO UPDATE SET overall_progress=EXCLUDED.overall_progress, "
+                "completed_videos=EXCLUDED.completed_videos, total_videos=EXCLUDED.total_videos, last_updated=CURRENT_TIMESTAMP",
+                (user_id, playlist_id, overall_progress, completed_videos, total_videos)
+            )
 
-        if user_key not in progress_data:
-            progress_data[user_key] = {
-                "user_id": user_id,
-                "playlist_id": playlist_id,
-                "videos": {},
-                "last_updated": datetime.now().isoformat()
-            }
-
-        progress_data[user_key]["videos"][video_id] = {
-            "completed": completed,
-            "timestamp": datetime.now().isoformat()
-        }
-        progress_data[user_key]["last_updated"] = datetime.now().isoformat()
-
-        if save_progress_data(progress_data):
-            return jsonify({
-                "success": True, "message": "Progress saved",
-                "user_id": user_id, "video_id": video_id, "completed": completed
-            }), 200
-        else:
-            return jsonify({"success": False, "message": "Failed to save progress"}), 500
-
+        return jsonify({"success": True}), 200
     except Exception as e:
-        return jsonify({"success": False, "message": "Internal server error"}), 500
-
+        logger.error(f"Save progress error: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/progress/<int:user_id>/<string:playlist_id>', methods=['GET'])
 def get_user_playlist_progress(user_id, playlist_id):
     try:
-        progress_data = load_progress_data()
-        user_key = get_user_progress_key(user_id, playlist_id)
+        videos_progress = execute_query(
+            "SELECT video_id, completed FROM VideoProgress WHERE user_id=%s AND playlist_id=%s",
+            (user_id, playlist_id),
+            fetch_all=True
+        )
+        
+        videos_dict = {v['video_id']: {'completed': v['completed']} for v in videos_progress} if videos_progress else {}
+        
+        playlist_stats = execute_query(
+            "SELECT overall_progress, completed_videos, total_videos FROM PlaylistProgress WHERE user_id=%s AND playlist_id=%s",
+            (user_id, playlist_id),
+            fetch_one=True
+        )
 
-        if user_key in progress_data:
-            user_progress = progress_data[user_key]
-            videos = user_progress.get("videos", {})
-            completed_videos = [v for v in videos.values() if v.get("completed")]
-            total_videos = len(videos)
-            progress_percentage = int((len(completed_videos) / total_videos) * 100) if total_videos > 0 else 0
-
-            return jsonify({
-                "success": True, "user_id": user_id, "playlist_id": playlist_id,
-                "completed_videos": len(completed_videos), "total_videos": total_videos,
-                "progress_percentage": progress_percentage, "videos": videos,
-                "last_updated": user_progress.get("last_updated")
-            }), 200
-        else:
-            return jsonify({
-                "success": True, "user_id": user_id, "playlist_id": playlist_id,
-                "completed_videos": 0, "total_videos": 0, "progress_percentage": 0,
-                "videos": {}, "last_updated": None
-            }), 200
-    except Exception as e:
-        return jsonify({"success": False, "message": "Internal server error"}), 500
-
-
-@app.route('/api/progress/mark-completed', methods=['POST'])
-def mark_video_completed():
-    try:
-        data = request.get_json()
-        return save_video_progress()
+        return jsonify({
+            "success": True,
+            "user_id": user_id,
+            "playlist_id": playlist_id,
+            "completed_videos": playlist_stats['completed_videos'] if playlist_stats else 0,
+            "total_videos": playlist_stats['total_videos'] if playlist_stats else 0,
+            "progress_percentage": playlist_stats['overall_progress'] if playlist_stats else 0,
+            "videos": videos_dict
+        }), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
-
 
 @app.route('/api/check-video-access/<string:playlist_id>', methods=['GET'])
 @token_required
 def check_video_access(playlist_id):
-    try:
-        user_id = request.current_user['user_id']
-        return jsonify({
-            "has_access": True, "user_id": user_id,
-            "playlist_id": playlist_id, "message": "Access granted"
-        }), 200
-    except Exception as e:
-        return jsonify({"message": "Internal server error"}), 500
-
+    return jsonify({"has_access": True, "user_id": request.current_user['user_id'], "playlist_id": playlist_id, "message": "Access granted"}), 200
 
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({
         "status": "healthy",
-        "database": DB_CONFIG["database"],
-        "database_connected": get_db_connection() is not None,
-        "local_ai_configured": True,
+        "database": "PostgreSQL",
         "timestamp": datetime.now().isoformat()
     }), 200
 
-
-# -------------------------------
-# TEST LOCAL OLLAMA AI
-# -------------------------------
 @app.route('/test-ollama', methods=['GET'])
 def test_ollama():
-    """Test connection to local Ollama"""
     try:
         response = requests.post("http://localhost:11434/api/generate", json={
             "model": "llama3.2",
             "prompt": "Say 'Hello World' in Arabic",
             "stream": False
-        }, timeout=None)
-
+        }, timeout=5)
         if response.status_code == 200:
-            return jsonify({
-                "status": "success",
-                "message": "Local Ollama API is working!",
-                "response": response.json().get('response', '')
-            })
-        else:
-            return jsonify({
-                "status": "error",
-                "message": f"Ollama returned status code {response.status_code}"
-            }), 500
+            return jsonify({"status": "success", "response": response.json().get('response', '')})
+        return jsonify({"status": "error", "code": response.status_code}), 500
     except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": f"Could not connect to Ollama. Ensure the Ollama app is running. Error: {str(e)}"
-        }), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-
-# ============================================
-# 4. MAIN ENTRY POINT
-# ============================================
 if __name__ == '__main__':
-    print("\n" + "=" * 50)
-    print("🚀 E-Learning Platform API")
-    print("=" * 50)
-    print(f"📊 Database: {DB_CONFIG['database']}")
-    print(f"🔌 Database Server: {DB_CONFIG['server']}")
-    print(f"🤖 Local AI: Ollama (Llama 3 / Mistral)")
-    print(f"🌐 Server will run on: http://localhost:5000")
-    print("=" * 50 + "\n")
-
     port = int(os.getenv('PORT', '5000'))
-    host = os.getenv('HOST', '0.0.0.0')
-
-    app.run(debug=True, host=host, port=port)
+    app.run(debug=True, host='0.0.0.0', port=port)
