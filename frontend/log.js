@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById("register-password").value;
 
             try {
-                const res = await fetch("http://127.0.0.1:5000/register", {
+                const res = await fetch(`${API_BASE_URL}/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, email, password })
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Auto-login after registration
                     try {
-                        const loginRes = await fetch("http://127.0.0.1:5000/login", {
+                        const loginRes = await fetch(`${API_BASE_URL}/login`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ username, password })
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById("login-password").value;
 
             try {
-                const res = await fetch("http://127.0.0.1:5000/login", {
+                const res = await fetch(`${API_BASE_URL}/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, password })

@@ -578,45 +578,7 @@
       <div class="sidebar glassmorphic">
         <h2><i class="fas fa-list"></i> Course Lectures</h2>
         <ul id="lecture-list">
-          <li
-            data-video="dQw4w9WgXcQ"
-            data-duration="10:30"
-            class="lecture-item"
-            data-completed="false"
-          >
-            <div class="lecture-icon"><i class="fas fa-play"></i></div>
-            <div class="lecture-details">
-              <span class="lecture-title">Lecture 1: Introduction</span>
-              <span class="lecture-duration">10:30</span>
-            </div>
-            <div class="lecture-check"><i class="fas fa-check"></i></div>
-          </li>
-          <li
-            data-video="9bZkp7q19f0"
-            data-duration="15:45"
-            class="lecture-item"
-            data-completed="false"
-          >
-            <div class="lecture-icon"><i class="fas fa-play"></i></div>
-            <div class="lecture-details">
-              <span class="lecture-title">Lecture 2: HTML Basics</span>
-              <span class="lecture-duration">15:45</span>
-            </div>
-            <div class="lecture-check"><i class="fas fa-check"></i></div>
-          </li>
-          <li
-            data-video="h8K49xOCMFY"
-            data-duration="12:20"
-            class="lecture-item"
-            data-completed="false"
-          >
-            <div class="lecture-icon"><i class="fas fa-play"></i></div>
-            <div class="lecture-details">
-              <span class="lecture-title">Lecture 3: CSS Fundamentals</span>
-              <span class="lecture-duration">12:20</span>
-            </div>
-            <div class="lecture-check"><i class="fas fa-check"></i></div>
-          </li>
+          <!-- Lectures will be populated by JavaScript -->
         </ul>
       </div>
     </div>
@@ -626,463 +588,207 @@
         <h3>Congratulations! 🎉</h3>
         <p>You've completed the entire course!</p>
         <div class="modal-buttons">
-            
-          <button href= "track.html"  id="back-to-track-btn" class="modal-btn">
-            Back to Track
-          </button>
-          <button href="index.html"  id="go-home-btn" class="modal-btn">Go Home</button>
+          <button id="back-to-track-btn" class="modal-btn">Back to Track</button>
+          <button id="go-home-btn" class="modal-btn">Go Home</button>
         </div>
       </div>
     </div>
-<script>
-  // ==========================
-  // CONFIGURATION - CHANGE ONLY THIS LINE PER TRACK
-  // ==========================
-  const API_KEY = "AIzaSyBwL2DIVb53ZGjtBdmQ0hjj9UG3I2e-XGo";
-  const PLAYLIST_ID = "PLzNfs-3kBUJllCa8_6pLYDMnIlg6Lfvu4"; // ⬅️ CHANGE ONLY THIS LINE!
-  const API_BASE_URL = 'http://localhost:5000';
 
-  const videoIframe = document.getElementById("video-iframe");
-  const lectureList = document.getElementById("lecture-list");
-  const backBtn = document.getElementById("back-btn");
-  const nextBtn = document.getElementById("next-btn");
-  const toggleTheme = document.getElementById("toggle-theme");
-  const completionModal = document.getElementById("completion-modal");
+    <script>
+      // ==========================
+      // CONFIGURATION
+      // ==========================
+      const API_KEY = "AIzaSyBwL2DIVb53ZGjtBdmQ0hjj9UG3I2e-XGo";
+      const PLAYLIST_ID = "PLzNfs-3kBUJllCa8_6pLYDMnIlg6Lfvu4";
+      const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5000' : '';
 
-  let lectures = [];
-  let currentIndex = 0;
-  let currentUser = null;
+      const videoIframe = document.getElementById("video-iframe");
+      const lectureList = document.getElementById("lecture-list");
+      const backBtn = document.getElementById("back-btn");
+      const nextBtn = document.getElementById("next-btn");
+      const toggleTheme = document.getElementById("toggle-theme");
+      const completionModal = document.getElementById("completion-modal");
 
-  // ==========================
-  // USER MANAGEMENT FUNCTIONS (SAME FOR ALL PAGES)
-  // ==========================
-  function getCurrentUser() {
-      const userData = localStorage.getItem('user');
-      return userData ? JSON.parse(userData) : null;
-  }
+      let lectures = [];
+      let currentIndex = 0;
+      let currentUser = null;
 
-  // ==========================
-  // LOGIN PROTECTION FUNCTIONS - ADD AFTER getCurrentUser()
-  // ==========================
-
-  // Check if user has access to this track
-  async function checkVideoAccess() {
-      // fetchWithAuth automatically adds the token and checks login status
-      const response = await fetchWithAuth(`/api/check-video-access/${PLAYLIST_ID}`);
-      
-      if (response && response.ok) {
-          const data = await response.json();
-          return data.has_access === true;
+      function getCurrentUser() {
+        const userData = localStorage.getItem("user");
+        return userData ? JSON.parse(userData) : null;
       }
-      return false;
-  }
 
-  // Redirect to login page
-  function redirectToLogin() {
-      localStorage.setItem('redirect_url', window.location.href);
-      window.location.href = 'login.html'; // Change to your login page URL
-  }
-
-  // Show access modal
-  function showAccessModal() {
-      let modal = document.getElementById('access-modal');
-      if (!modal) {
-          modal = document.createElement('div');
-          modal.id = 'access-modal';
-          modal.className = 'modal';
-          modal.innerHTML = `
-              <div class="modal-content">
-                  <h3><i class="fas fa-lock"></i> Restricted Content</h3>
-                  <p>You need to be logged in to watch this video.</p>
-                  <div class="modal-buttons">
-                      <button id="login-redirect-btn" class="modal-btn">
-                          <i class="fas fa-sign-in-alt"></i> Login / Register
-                      </button>
-                      <button id="close-access-modal" class="modal-btn" style="background: #666;">
-                          <i class="fas fa-times"></i> Cancel
-                      </button>
-                  </div>
-              </div>
-          `;
-          document.body.appendChild(modal);
-            
-          // Add event listeners
-          document.getElementById('login-redirect-btn').addEventListener('click', redirectToLogin);
-          document.getElementById('close-access-modal').addEventListener('click', () => {
-              modal.style.display = 'none';
-          });
-      }
-      modal.style.display = 'block';
-  }
-
-  // Create video overlay
-  function createVideoOverlay() {
-      let overlay = document.getElementById('video-overlay');
-      if (!overlay) {
-          overlay = document.createElement('div');
-          overlay.id = 'video-overlay';
-          overlay.className = 'video-overlay';
-          overlay.innerHTML = `
-              <i class="fas fa-lock"></i>
-              <h3>Content Locked</h3>
-              <p>Login or register to unlock this video</p>
-              <div class="overlay-buttons">
-                  <button onclick="redirectToLogin()" class="overlay-btn">
-                      <i class="fas fa-sign-in-alt"></i> Login to Unlock
-                  </button>
-              </div>
-          `;
-          videoIframe.parentNode.appendChild(overlay);
-      }
-      return overlay;
-  }
-
-  // Protected video loader
-  async function loadVideoWithProtection(videoId) {
-      const hasAccess = await checkVideoAccess();
-      const overlay = document.getElementById('video-overlay');
-
-      if (!hasAccess) {
-          // Locked state - blur video and show overlay
-          videoIframe.src = `https://www.youtube.com/embed/${videoId}?controls=0&showinfo=0`;
-          videoIframe.classList.add('locked');
-
-          // Show overlay
-          if (!overlay) {
-              createVideoOverlay();
-          } else {
-              overlay.style.display = 'flex';
+      async function checkVideoAccess() {
+        if (typeof fetchWithAuth !== "undefined") {
+          const response = await fetchWithAuth(`${API_BASE_URL}/api/check-video-access/${PLAYLIST_ID}`);
+          if (response && response.ok) {
+            const data = await response.json();
+            return data.has_access === true;
           }
-
-          // Lock lecture items
-          document.querySelectorAll('.lecture-item').forEach(item => {
-              item.classList.add('locked');
-          });
-
-          // Disable navigation
-          backBtn.disabled = true;
-          nextBtn.disabled = true;
-
-          return false; // No access
-      } else {
-          // Unlocked state - normal video
-          videoIframe.src = `https://www.youtube.com/embed/${videoId}`;
-          videoIframe.classList.remove('locked');
-
-          // Hide overlay
-          if (overlay) {
-              overlay.style.display = 'none';
-          }
-
-          // Unlock lecture items
-          document.querySelectorAll('.lecture-item').forEach(item => {
-              item.classList.remove('locked');
-          });
-
-          // Enable navigation
-          backBtn.disabled = false;
-          nextBtn.disabled = false;
-
-          return true; // Has access
-      }
-  }
-
-  function saveToLocalStorage(videoId, completed) {
-      const key = `progress_${PLAYLIST_ID}`;
-      let progress = JSON.parse(localStorage.getItem(key)) || {};
-
-      if (!progress.videos) progress.videos = {};
-      progress.videos[videoId] = {
-          completed: completed,
-          timestamp: new Date().toISOString()
-      };
-
-      localStorage.setItem(key, JSON.stringify(progress));
-  }
-
-  function loadFromLocalStorage() {
-      const key = `progress_${PLAYLIST_ID}`;
-      const progress = JSON.parse(localStorage.getItem(key)) || {};
-      return progress.videos || {};
-  }
-
-  async function saveVideoProgress(videoId, completed = false) {
-      const user = getCurrentUser();
-      if (!user || !user.user_id) {
-          saveToLocalStorage(videoId, completed);
-          return;
+        }
+        return true; 
       }
 
-      try {
-          const response = await fetch(`${API_BASE_URL}/api/progress/save`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({
-                  user_id: user.user_id,
-                  playlist_id: PLAYLIST_ID,
-                  video_id: videoId,
-                  completed: completed
-              })
+      async function saveVideoProgress(videoId, completed = false) {
+        const user = getCurrentUser();
+        if (!user || !user.user_id) return;
+
+        try {
+          await fetch(`${API_BASE_URL}/api/progress/save`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: user.user_id,
+              playlist_id: PLAYLIST_ID,
+              video_id: videoId,
+              completed: completed,
+            }),
           });
-          await response.json();
-      } catch (error) {
-          saveToLocalStorage(videoId, completed);
+        } catch (error) {
+          console.error("Error saving progress:", error);
+        }
       }
-  }
 
-  async function loadVideoProgress() {
-      const user = getCurrentUser();
-
-      if (user && user.user_id) {
+      async function loadVideoProgress() {
+        const user = getCurrentUser();
+        if (user && user.user_id) {
           try {
-              const response = await fetch(
-                  `${API_BASE_URL}/api/progress/${user.user_id}/${PLAYLIST_ID}`
-              );
-              const data = await response.json();
-
-              if (data.success) {
-                  return data.videos || {};
-              }
+            const response = await fetch(`${API_BASE_URL}/api/progress/${user.user_id}/${PLAYLIST_ID}`);
+            const data = await response.json();
+            if (data.success) return data.videos || {};
           } catch (error) {
-              console.error('Error loading progress:', error);
+            console.error("Error loading progress:", error);
           }
+        }
+        return {};
       }
 
-      return loadFromLocalStorage();
-  }
+      async function updateProgressCircle() {
+        const completed = document.querySelectorAll('.lecture-item[data-completed="true"]').length;
+        const total = lectures.length || 1;
+        const percent = Math.round((completed / total) * 100);
+        const circle = document.querySelector(".progress-circle circle:nth-child(2)");
+        if (circle) {
+          const radius = circle.r.baseVal.value;
+          const circumference = 2 * Math.PI * radius;
+          const offset = circumference - (percent / 100) * circumference;
+          circle.style.strokeDashoffset = offset;
+        }
+        const textCircle = document.getElementById("progress-text-circle");
+        if (textCircle) textCircle.textContent = percent + "%";
 
-  async function initializeProgress() {
-      currentUser = getCurrentUser();
-      const savedProgress = await loadVideoProgress();
+        // Save overall progress
+        const user = getCurrentUser();
+        if (user && user.user_id) {
+          try {
+            await fetch(`${API_BASE_URL}/api/progress/save`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                user_id: user.user_id,
+                playlist_id: PLAYLIST_ID,
+                overall_progress: percent,
+                completed_videos: completed,
+                total_videos: total,
+              }),
+            });
+          } catch (error) {
+            console.error("Error saving overall progress:", error);
+          }
+        }
+      }
 
-      lectures.forEach((lecture, index) => {
+      async function updateActiveLecture(index) {
+        if (index < 0 || index >= lectures.length) return;
+        lectures.forEach((item, i) => item.classList.toggle("active", i === index));
+        currentIndex = index;
+        const videoId = lectures[index].dataset.video;
+        videoIframe.src = `https://www.youtube.com/embed/${videoId}`;
+        
+        // Mark as completed after 5 seconds of watching
+        setTimeout(() => markCompleted(index), 5000);
+      }
+
+      async function markCompleted(index) {
+        const lecture = lectures[index];
+        if (!lecture || lecture.getAttribute("data-completed") === "true") return;
+
+        lecture.setAttribute("data-completed", "true");
+        const videoId = lecture.dataset.video;
+        await saveVideoProgress(videoId, true);
+        await updateProgressCircle();
+
+        if ([...lectures].every((li) => li.dataset.completed === "true")) {
+          completionModal.style.display = "block";
+        }
+      }
+
+      async function fetchPlaylistVideos() {
+        try {
+          const res = await fetch(
+            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${PLAYLIST_ID}&key=${API_KEY}`
+          );
+          const data = await res.json();
+          return data.items.map(item => ({
+            title: item.snippet.title,
+            videoId: item.snippet.resourceId.videoId,
+            duration: "00:00"
+          }));
+        } catch (error) {
+          console.error("Error fetching playlist:", error);
+          return [];
+        }
+      }
+
+      function populateLectureList(videos) {
+        lectureList.innerHTML = "";
+        videos.forEach((video, i) => {
+          const li = document.createElement("li");
+          li.className = "lecture-item";
+          li.dataset.video = video.videoId;
+          li.innerHTML = `
+            <div class="lecture-icon"><i class="fas fa-play"></i></div>
+            <div class="lecture-details">
+              <span class="lecture-title">${video.title}</span>
+            </div>
+            <div class="lecture-check"><i class="fas fa-check"></i></div>
+          `;
+          li.addEventListener("click", () => updateActiveLecture(i));
+          lectureList.appendChild(li);
+        });
+        lectures = document.querySelectorAll(".lecture-item");
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        currentUser = getCurrentUser();
+        const videos = await fetchPlaylistVideos();
+        populateLectureList(videos);
+        
+        const savedProgress = await loadVideoProgress();
+        lectures.forEach(lecture => {
           const videoId = lecture.dataset.video;
           if (savedProgress[videoId] && savedProgress[videoId].completed) {
-              lecture.setAttribute("data-completed", "true");
-              lecture.querySelector('.lecture-check i').style.color = '#4CAF50';
+            lecture.setAttribute("data-completed", "true");
           }
-      });
-
-      updateProgressCircle();
-  }
-
-  // ==========================
-  // YOUTUBE API FUNCTIONS (SAME FOR ALL PAGES)
-  // ==========================
-  function formatDuration(duration) {
-    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-    const hours = match[1] ? parseInt(match[1].replace("H","")) : 0;
-    const minutes = match[2] ? parseInt(match[2].replace("M","")) : 0;
-    const seconds = match[3] ? parseInt(match[3].replace("S","")) : 0;
-    if(hours > 0){
-      return `${hours}:${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`;
-    } else {
-      return `${minutes}:${seconds.toString().padStart(2,"0")}`;
-    }
-  }
-
-  async function fetchPlaylistVideos() {
-    let videos = [];
-    let nextPageToken = "";
-
-    do {
-      const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${PLAYLIST_ID}&key=${API_KEY}&pageToken=${nextPageToken}`
-      );
-      const data = await res.json();
-
-      const videoIds = data.items.map(item => item.snippet.resourceId.videoId).join(",");
-
-      const detailsRes = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${API_KEY}`
-      );
-      const detailsData = await detailsRes.json();
-
-      data.items.forEach((item, i) => {
-        const durationISO = detailsData.items[i].contentDetails.duration;
-        videos.push({
-          title: item.snippet.title,
-          videoId: item.snippet.resourceId.videoId,
-          duration: formatDuration(durationISO),
         });
-      });
 
-      nextPageToken = data.nextPageToken || "";
-    } while (nextPageToken);
-
-    return videos;
-  }
-
-  function populateLectureList(videos) {
-    lectureList.innerHTML = "";
-    videos.forEach((video, i) => {
-      const li = document.createElement("li");
-      li.className = "lecture-item";
-      li.dataset.video = video.videoId;
-      li.dataset.duration = video.duration;
-      li.dataset.completed = "false";
-
-      li.innerHTML = `
-        <div class="lecture-icon"><i class="fas fa-play"></i></div>
-        <div class="lecture-details">
-          <span class="lecture-title">${video.title}</span>
-          <span class="lecture-duration">${video.duration}</span>
-        </div>
-        <div class="lecture-check"><i class="fas fa-check"></i></div>
-      `;
-
-      li.addEventListener("click", async () => {
-        const hasAccess = await checkVideoAccess();
-        if (!hasAccess) {
-          showAccessModal();
-        } else {
-          updateActiveLecture(i);
+        if (lectures.length > 0) {
+          updateActiveLecture(0);
+          updateProgressCircle();
         }
       });
-      lectureList.appendChild(li);
-    });
 
-    lectures = document.querySelectorAll(".lecture-item");
-  }
-
-  async function loadVideo(videoId) {
-    const hasAccess = await loadVideoWithProtection(videoId);
-    return hasAccess;
-  }
-
-  async function updateActiveLecture(index) {
-    const hasAccess = await checkVideoAccess();
-    
-    if (!hasAccess) {
-        showAccessModal();
-        return;
-    }
-    
-    lectures.forEach((item, i) =>
-      item.classList.toggle("active", i === index)
-    );
-    currentIndex = index;
-    await loadVideo(lectures[index].dataset.video);
-    
-    // Only mark as completed if user has access
-    if (hasAccess) {
-        setTimeout(() => markCompleted(index), 3000);
-    }
-  }
-
-  async function markCompleted(index) {
-    const hasAccess = await checkVideoAccess();
-    if(!hasAccess) return;
-
-
-    const videoId = lectures[index].dataset.video;
-
-    lectures[index].setAttribute("data-completed", "true");
-    lectures[index].querySelector('.lecture-check i').style.color = '#4CAF50';
-
-    await saveVideoProgress(videoId, true);
-    await updateProgressCircle();
-
-    if ([...lectures].every((li) => li.dataset.completed === "true")) {
-      completionModal.style.display = "block";
-    }
-  }
-
-  async function updateProgressCircle() {
-    const completed = document.querySelectorAll(
-      '.lecture-item[data-completed="true"]'
-    ).length;
-    const percent = Math.round((completed / lectures.length) * 100);
-    const circle = document.querySelector(
-      ".progress-circle circle:nth-child(2)"
-    );
-    const radius = circle.r.baseVal.value;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (percent / 100) * circumference;
-    circle.style.strokeDashoffset = offset;
-    document.getElementById("progress-text-circle").textContent = percent + "%";
-
-    // Save overall progress
-    const user = getCurrentUser();
-    if (user && user.user_id) {
-        try {
-            await fetch(`${API_BASE_URL}/api/progress/save`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: user.user_id,
-                    playlist_id: PLAYLIST_ID,
-                    overall_progress: percent,
-                    completed_videos: completed,
-                    total_videos: lectures.length
-                })
-            });
-        } catch (error) {
-            console.error('Error saving overall progress:', error);
-        }
-    }
-  }
-
-  // ==========================
-  // EVENT LISTENERS (SAME FOR ALL PAGES)
-  // ==========================
-  backBtn.addEventListener("click", async () => {
-    if (currentIndex > 0) {
-      const hasAccess = await checkVideoAccess();
-      if (!hasAccess) {
-        showAccessModal();
-      } else {
-        updateActiveLecture(currentIndex -1);
-      }
-    }
-  });
-
-  nextBtn.addEventListener("click", async () => {
-    if (currentIndex < lectures.length - 1) {
-      const hasAccess = await checkVideoAccess();
-      if(!hasAccess) {
-        showAccessModal();
-      }
-      else {
-        updateActiveLecture(currentIndex + 1);
-      }
-    }
-  });
-
-  toggleTheme.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-    toggleTheme.innerHTML = document.body.classList.contains("dark-mode")
-      ? '<i class="fas fa-sun"></i> Light Mode'
-      : '<i class="fas fa-moon"></i> Night Mode';
-  });
-
-  // ==========================
-  // INITIALIZE PAGE (SAME FOR ALL PAGES)
-  // ==========================
-  document.addEventListener('DOMContentLoaded', async function() {
-    await requireAuth();
-      currentUser = getCurrentUser();
-
-      const hasAccess = await checkVideoAccess();
-
-      fetchPlaylistVideos().then(videos => {
-          populateLectureList(videos);
-          if (lectures.length > 0) {
-            loadVideoWithProtection(lectures[0].dataset.video)
-
-            if (hasAccess) {
-              initializeProgress();
-            }
-          }
+      backBtn.addEventListener("click", () => updateActiveLecture(currentIndex - 1));
+      nextBtn.addEventListener("click", () => updateActiveLecture(currentIndex + 1));
+      toggleTheme.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
       });
-
-      setTimeout(() => {
-    if (lectures.length > 0) {
-      lectures[0].classList.add('active');
-    }
-    } ,100);
-  });
-</script>
-
+      document.getElementById("go-home-btn").addEventListener("click", () => {
+        window.location.href = "index.html";
+      });
+      document.getElementById("back-to-track-btn").addEventListener("click", () => {
+        window.location.href = "track.html";
+      });
+    </script>
   </body>
 </html>

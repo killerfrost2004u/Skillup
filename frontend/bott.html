@@ -21,6 +21,8 @@ const chatBox = document.getElementById("chat_box");
 const chatInput = document.getElementById("chat_bot");
 const sendBtn = document.querySelector(".btn-submit");
 
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5000' : '';
+
 function sendMessage() {
     const userMessage = chatInput.value.trim();
     if (!userMessage) return;
@@ -29,7 +31,7 @@ function sendMessage() {
     chatInput.value = "";
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    fetch("http://127.0.0.1:5000", {
+    fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage })

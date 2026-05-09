@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <!-- custom css filelink -->
     <link rel="stylesheet" href="SKILL UP.CSS" />
+    <script src="auth-guard.js"></script>
     <script src="SKILL UP.JS"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css" />
@@ -628,19 +629,27 @@ sendBtn.addEventListener("click", () => {
     chatBox.scrollTop = chatBox.scrollHeight;
 
     // إرسال الرسالة للسيرفر
-    fetch("http://127.0.0.1:5000/chat", {  // الرابط لازم يكون نفس السيرفر
+    fetch(`${API_BASE_URL}/chat`, {  // الرابط لازم يكون نفس السيرفر
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage })
     })
-    .then(res => res.json())
+    .then(res => {
+        if (res.status === 403) {
+            throw new Error('عذراً، نظام الدردشة متاح فقط عند تشغيل المشروع محلياً');
+        }
+        return res.json();
+    })
     .then(data => {
         // عرض رد البوت
         chatBox.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;  // يضمن ظهور آخر رسالة
     })
-    .catch(() => {
-        chatBox.innerHTML += `<div class="bot-msg">Error connecting to server</div>`;
+    .catch((error) => {
+        const errorMsg = error.message === 'عذراً، نظام الدردشة متاح فقط عند تشغيل المشروع محلياً' 
+            ? error.message 
+            : 'Error connecting to server';
+        chatBox.innerHTML += `<div class="bot-msg">${errorMsg}</div>`;
     });
 });
 
@@ -872,7 +881,7 @@ document.querySelector(".contact_form_submit").addEventListener("click", functio
     const email = document.querySelector("input[placeholder='Email']").value;
     const message = document.querySelector("textarea[placeholder='Message']").value;
 
-    fetch("http://127.0.0.1:5000/contact", {
+    fetch(`${API_BASE_URL}/contact`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

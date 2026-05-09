@@ -639,8 +639,8 @@
   // CONFIGURATION - CHANGE ONLY THIS LINE PER TRACK
   // ==========================
   const API_KEY = "AIzaSyBwL2DIVb53ZGjtBdmQ0hjj9UG3I2e-XGo";
-  const PLAYLIST_ID = "PLDoPjvoNmBAx3kiplQR_oeDqLDBUDYwVv"; // ⬅️ CHANGE ONLY THIS LINE!
-  const API_BASE_URL = 'http://localhost:5000';
+  const PLAYLIST_ID = "PLSiLeKadTQ7mYnLJxpQo1-944miQKlheu-v"; // ⬅️ CHANGE ONLY THIS LINE!
+  const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5000' : '';
 
   const videoIframe = document.getElementById("video-iframe");
   const lectureList = document.getElementById("lecture-list");
