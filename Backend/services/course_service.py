@@ -71,36 +71,58 @@ class CourseService:
             "videos": videos_dict
         }
 
-class AIChatService:
-    def get_reply(self, user_message):
-        openai_key = os.getenv('OPENAI_API_KEY')
-        if openai_key:
-            try:
-                import openai
-                client = openai.OpenAI(api_key=openai_key)
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful e-learning assistant for SkillUp platform."},
-                        {"role": "user", "content": user_message}
-                    ]
-                )
-                return response.choices[0].message.content
-            except Exception:
-                pass
+# ============================================
+# 6. STRATEGY PATTERN (AI Providers)
+# ============================================
+class ChatStrategy(ABC):
+    @abstractmethod
+    def generate_reply(self, message: str) -> str:
+        pass
 
-        ollama_url = "http://localhost:11434/api/generate"
-        ollama_payload = {
+class OpenAIStrategy(ChatStrategy):
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+
+    def generate_reply(self, message: str) -> str:
+        try:
+            import openai
+            client = openai.OpenAI(api_key=self.api_key)
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful e-learning assistant for SkillUp platform."},
+                    {"role": "user", "content": message}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Error with OpenAI provider: {str(e)}"
+
+class OllamaStrategy(ChatStrategy):
+    def __init__(self, url: str = "http://localhost:11434/api/generate"):
+        self.url = url
+
+    def generate_reply(self, message: str) -> str:
+        payload = {
             "model": "llama3.2",
-            "prompt": f"Help student with SkillUp platform. Msg: {user_message}",
+            "prompt": f"Help student with SkillUp platform. Msg: {message}",
             "stream": False
         }
-
         try:
-            response = requests.post(ollama_url, json=ollama_payload, timeout=30)
+            response = requests.post(self.url, json=payload, timeout=30)
             if response.status_code == 200:
                 return response.json().get('response', '')
+            return f"Ollama error: HTTP {response.status_code}"
         except requests.exceptions.ConnectionError:
             return 'عذراً، نظام الدردشة يتطلب تشغيل Ollama محلياً.'
-        
-        return 'عذراً، حدث خطأ في نظام الدردشة.'
+        except Exception as e:
+            return f"Error with Ollama provider: {str(e)}"
+
+class AIChatService:
+    def __init__(self, strategy: ChatStrategy):
+        self.strategy = strategy
+
+    def get_reply(self, user_message: str) -> str:
+        if not self.strategy:
+            return 'عذراً، نظام الدردشة غير متاح حالياً.'
+        return self.strategy.generate_reply(user_message)

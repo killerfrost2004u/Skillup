@@ -1,6 +1,6 @@
 import os
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 
 JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
@@ -75,6 +75,6 @@ class AuthService:
             'user_id': user['user_id'],
             'name': user['name'],
             'email': user['email'],
-            'exp': datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS),
+            'exp': datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS),
         }
         return jwt.encode(token_data, JWT_SECRET, algorithm=JWT_ALGORITHM)

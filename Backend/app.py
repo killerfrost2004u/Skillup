@@ -6,7 +6,7 @@ import logging
 
 from .data.repository import UserRepository, CourseRepository
 from .services.auth_service import AuthService
-from .services.course_service import CourseService, AIChatService, CompletionLogger
+from .services.course_service import CourseService, AIChatService, CompletionLogger, OpenAIStrategy, OllamaStrategy
 from .api.routes import api_bp
 
 # Configure logging
@@ -21,13 +21,18 @@ def create_app():
     CORS(app)
     
     # 1. Instantiate Repositories (Data Layer)
-    user_repo = UserRepository()
-    course_repo = CourseRepository()
+    from .data.db import db_manager
+    user_repo = UserRepository(db_manager)
+    course_repo = CourseRepository(db_manager)
     
     # 2. Instantiate Services (Brain Layer) with DI
     auth_service = AuthService(user_repo)
     course_service = CourseService(course_repo)
-    ai_service = AIChatService()
+    
+    # Select AI Strategy
+    openai_key = os.getenv('OPENAI_API_KEY')
+    chat_strategy = OpenAIStrategy(openai_key) if openai_key else OllamaStrategy()
+    ai_service = AIChatService(chat_strategy)
     
     # 3. Attach Observers (Behavioral Pattern)
     course_service.add_observer(CompletionLogger())
