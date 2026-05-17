@@ -84,6 +84,22 @@
           </div>
       </div>
 
+      <script src="auth-guard.js"></script>
       <script src="log.js"></script>
+      <script>
+        // Check URL parameter to show register panel automatically
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const showRegister = urlParams.get('show') === 'register';
+
+            if (showRegister) {
+                // Activate the register panel
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.classList.add('active');
+                }
+            }
+        });
+      </script>
   </body>
 </html>

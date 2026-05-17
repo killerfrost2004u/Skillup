@@ -175,25 +175,31 @@ h1,h2{
 </style>
 </head>
 <body>
+    <script src="auth-guard.js"></script>
+    <script>
+        requireAuth();
+    </script>
+
 <!-- PROFILE HEADER -->
 <div class="card" style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
     <div style="position: relative;">
         <img src="user.jpg" class="profile-pic" id="profilePic" onclick="if(editMode) document.getElementById('uploadInput').click()">
         <input type="file" id="uploadInput" style="display:none" accept="image/*" onchange="changeProfile(event)">
     </div>
-    <div style="flex:1; min: width 50px;">
-        <h2 id="studentName" contenteditable="false"></h2>
-            <p id="profile-email">user@example.com</p>
+    <div style="flex:1; min-width: 50px;">
+        <h2 id="studentName" contenteditable="false">Loading...</h2>
+            <p id="profile-email">email@example.com</p>
        <div class="card student-card">
         <div class="student-info">
-            <p><strong>Age:</strong> <input type="number" id="ageInput" value="20" disabled></p>
-            <p><strong>Year:</strong> <input type="text" id="yearInput" value="Year" disabled></p>
-            <p><strong>Major:</strong> <input type="text" id="majorInput" value="Computer " disabled></p>
-            <p><strong>University:</strong> <input type="text" id="univInput" value=" College" disabled></p>
+            <p><strong>Age:</strong> <input type="number" id="ageInput" value="" placeholder="Age" disabled></p>
+            <p><strong>Year:</strong> <input type="text" id="yearInput" value="" placeholder="Academic Year" disabled></p>
+            <p><strong>Major:</strong> <input type="text" id="majorInput" value="" placeholder="Major" disabled></p>
+            <p><strong>University:</strong> <input type="text" id="univInput" value="" placeholder="University/College" disabled></p>
         </div>
         </div>
+        <button class="edit-btn" onclick="window.location.href='index.html'">Home</button>
         <button class="edit-btn" id="editBtn" onclick="toggleEdit()">Edit YOUR INFO</button>
-        <button class="edit-btn" id="logout-link">Logout</button>
+        <button class="edit-btn" id="logout-btn">Logout</button>
 
     </div>
 </div>
@@ -225,25 +231,28 @@ h1,h2{
 <!-- RIGHT SIDE -->
 <div>
     <div class="card">
-        <h3>Course Progress</h3>
-        <input type="text" id="progressCourse" placeholder="Course name" disabled>
-        <input type="number" id="progressValue" placeholder="Progress %" min="0" max="100" disabled>
-
-        <button onclick="updateProgress()" id="updateProgressBtn" disabled>Update Progress</button>
-        <ul id="progressList"></ul>
+        <h3>Courses In Progress</h3>
+        <ul id="in-progress-list" style="margin-bottom: 2rem;">
+            <li>No courses in progress yet.</li>
+        </ul>
+        
+        <h3>Completed Courses</h3>
+        <ul id="completed-courses-list">
+            <li>No completed courses yet.</li>
+        </ul>
     </div>
 
     <div class="card" style="margin-top:24px; text-align:center;">
         <h3>Rank </h3>
-        <h1>#07 </h1>
-        <p>Top Student This Month</p>
+        <h1 id="userRank">-- </h1>
+        <p id="rankTitle">Loading rank...</p>
     </div>
 
     <div class="card" style="margin-top:24px;">
         <h3>Achievements</h3>
-        <p>🏆 1500 Points</p>
-        <p>📘 40 Lessons Completed</p>
-        <p>⏳ 120 Learning Hours</p>
+        <p id="achPoints">🏆 -- Points</p>
+        <p id="achLessons">📘 -- Lessons Completed</p>
+        <p id="achHours">⏳ -- Learning Hours</p>
     </div>
 </div>
 
@@ -263,17 +272,35 @@ let userData = JSON.parse(localStorage.getItem('user')) || {
     age: 20,
     year: 'Year',
     major: 'Computer',
-    college: 'College'
+    college: 'College',
+    rank: '#07',
+    rank_title: 'Top Student This Month',
+    points: 1500,
+    lessons: 40,
+    hours: 120
 };
 
-document.getElementById('studentName').textContent = userData.name;
-document.getElementById('profile-email').textContent = userData.email;
-profilePic.src = userData.profile_image;
+// Function to populate page with user data
+function populateUserData() {
+    document.getElementById('studentName').textContent = userData.name;
+    document.getElementById('profile-email').textContent = userData.email;
+    profilePic.src = userData.profile_image || 'user.jpg';
 
-document.getElementById('ageInput').value = userData.age;
-document.getElementById('yearInput').value = userData.year;
-document.getElementById('majorInput').value = userData.major;
-document.getElementById('univInput').value = userData.college;
+    document.getElementById('ageInput').value = userData.age || '';
+    document.getElementById('yearInput').value = userData.year || '';
+    document.getElementById('majorInput').value = userData.major || '';
+    document.getElementById('univInput').value = userData.college || '';
+
+    // Update Rank and Achievements dynamically
+    document.getElementById('userRank').textContent = userData.rank || '--';
+    document.getElementById('rankTitle').textContent = userData.rank_title || 'Loading...';
+    document.getElementById('achPoints').innerHTML = `🏆 ${userData.points || 0} Points`;
+    document.getElementById('achLessons').innerHTML = `📘 ${userData.lessons || 0} Lessons Completed`;
+    document.getElementById('achHours').innerHTML = `⏳ ${userData.hours || 0} Learning Hours`;
+}
+
+// Initial populate
+populateUserData();
 
 // --- Courses list ---
 const courses = ['HTML', 'CSS', 'JAVA SCRIPT', 'Python BASICS', 'GUI','NODE JS','PHP','TESTING','FULL STACK'];
@@ -314,21 +341,6 @@ function addNote(){
     }
 }
 
-function updateProgress(){
-    if(!editMode) return;
-    let course = document.getElementById('progressCourse').value;
-    let value = document.getElementById('progressValue').value;
-    if(course.trim() !== '' && value !== ''){
-        let li = document.createElement('li');
-        li.textContent = `${course}: ${value}%`;
-        li.onclick = () => { li.remove(); saveProgress(); };
-        progressList.appendChild(li);
-        document.getElementById('progressCourse').value = '';
-        document.getElementById('progressValue').value = '';
-        saveProgress();
-    }
-}
-
 function changeProfile(event){
     if(!editMode) return;
     const reader = new FileReader();
@@ -344,49 +356,45 @@ function toggleEdit() {
     editMode = !editMode;
     const editableElements = document.querySelectorAll('[contenteditable], input, textarea, button');
     editableElements.forEach(el => {
-        if(el.id !== 'editBtn') el.disabled = !editMode;
+        if(el.id !== 'editBtn' && el.className !== 'edit-btn') {
+             if(el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.disabled = !editMode;
+        }
         if(el.hasAttribute('contenteditable')) el.contentEditable = editMode;
     });
     document.getElementById('editBtn').textContent = editMode ? 'Done' : 'Edit YOUR INFO';
 
     if(!editMode){
-        // جمع البيانات وحفظها
-        const updatedData = {
+        // Merge with existing data to preserve fields like user_id, rank, etc.
+        userData = {
+            ...userData,
             name: document.getElementById('studentName').textContent,
             email: document.getElementById('profile-email').textContent,
             profile_image: profilePic.src,
-            age: parseInt(document.getElementById('ageInput').value),
+            age: parseInt(document.getElementById('ageInput').value) || 0,
             year: document.getElementById('yearInput').value,
             major: document.getElementById('majorInput').value,
             college: document.getElementById('univInput').value,
-
         };
 
-        fetch('http://localhost:5000/update-profile', {
+        fetch(`${API_BASE_URL}/update-profile`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedData)
+            body: JSON.stringify(userData)
         })
         .then(res => res.json())
         .then(data => {
             alert(data.message);
-            localStorage.setItem('user', JSON.stringify(updatedData));
-
-            // مهم: إعادة تعيين editMode بعد الحفظ
-            editMode = false;
+            localStorage.setItem('user', JSON.stringify(userData));
+            populateUserData(); // Refresh UI
         })
         .catch(err => console.log("Error updating profile:", err));
     }
 }
 
-
-
-
 // --- Save data to localStorage ---
 function saveUserData(key, value){
-    let user = JSON.parse(localStorage.getItem('user')) || {};
-    user[key] = value;
-    localStorage.setItem('user', JSON.stringify(user));
+    userData[key] = value;
+    localStorage.setItem('user', JSON.stringify(userData));
 }
 
 // --- Load saved courses, notes, and progress ---
@@ -406,14 +414,6 @@ function loadSavedData(){
         li.onclick = () => { li.remove(); saveNotes(); };
         notesList.appendChild(li);
     });
-
-    let savedProgress = JSON.parse(localStorage.getItem('userProgress')) || [];
-    savedProgress.forEach(p => {
-        let li = document.createElement('li');
-        li.textContent = p;
-        li.onclick = () => { li.remove(); saveProgress(); };
-        progressList.appendChild(li);
-    });
 }
 
 // --- Save helper functions ---
@@ -425,78 +425,74 @@ function saveNotes(){
     let arr = Array.from(notesList.querySelectorAll('li')).map(li => li.textContent);
     localStorage.setItem('userNotes', JSON.stringify(arr));
 }
-function saveProgress(){
-    let arr = Array.from(progressList.querySelectorAll('li')).map(li => li.textContent);
-    localStorage.setItem('userProgress', JSON.stringify(arr));
-}
 
 // --- Initialize ---
 loadSavedData();
 
 // --- Logout Functionality ---
-// Logout دايمًا شغال
-document.getElementById('logout-link').addEventListener('click', () => {
+document.getElementById('logout-btn').addEventListener('click', () => {
     if(editMode) {
         alert("Finish editing your profile before logging out!");
-        return; // ما يعملش logout لو في وضع التعديل
+        return;
     }
-
-    // --- Logout عادي لو مش في Edit Mode ---
-    localStorage.removeItem('user');
-    localStorage.removeItem('userCourses');
-    localStorage.removeItem('userNotes');
-    localStorage.removeItem('userProgress');
-
-    // إعادة ضبط الصفحة للبروفايل الافتراضي
-    document.getElementById('studentName').textContent = 'User Name';
-    document.getElementById('profile-email').textContent = 'user@example.com';
-    profilePic.src = 'user.jpg';
-
-    document.getElementById('ageInput').value = 20;
-    document.getElementById('yearInput').value = 'Year';
-    document.getElementById('majorInput').value = 'Computer';
-    document.getElementById('univInput').value = 'College';
-
-    courseList.innerHTML = '';
-    notesList.innerHTML = '';
-    progressList.innerHTML = '';
-
-    // إعادة تعطيل الحقول
-    ['newCourse','addCourseBtn','noteText','addNoteBtn','progressCourse','progressValue','updateProgressBtn','editBtn'].forEach(id=>{
-        const el = document.getElementById(id);
-        if(el) el.disabled = true;
-    });
-
-    alert('You have been logged out!');
-
-    
+    // Use the shared function from auth-guard.js
+    handleLogout();
 });
-
-
-
-
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    
+    if(storedUser && storedUser.user_id) {
+        const CURRENT_USER_ID = storedUser.user_id;
+        const inProgressList = document.getElementById('in-progress-list');
+        const completedList = document.getElementById('completed-courses-list');
 
-    const CURRENT_USER_ID = 5;
+        fetch(`${API_BASE_URL}/get-progress/${CURRENT_USER_ID}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data && data.length > 0){
+                    inProgressList.innerHTML = '';
+                    completedList.innerHTML = '';
 
+                    let hasInProgress = false;
+                    let hasCompleted = false;
 
-    const progressCourse = document.getElementById('progressCourse');
-    const progressValue = document.getElementById('progressValue');
-    const updateProgressBtn = document.getElementById('updateProgressBtn');
+                    const trackNames = {
+                        "PLDoPjvoNmBAx3kiplQR_oeDqLDBUDYwVv": "HTML Track",
+                        "PLDoPjvoNmBAzjsz06gkzlSrlev53MGIKe": "CSS Track",
+                        "PLSiLeKadTQ7nLJxpQo1-944miQKlheu-v": "JavaScript Track",
+                        "PLDoPjvoNmBAyE_gei5d18qkfIe-Z8mocs": "Python Track",
+                        "PLzNfs-3kBUJllCa8_6pLYDMnIlg6Lfvu4": "Software Testing Track",
+                        "PLVrN2LRb7eT2B6v1EwsCS28QkkDTZ5LRm": "Full Stack Track",
+                        "PLDoPjvoNmBAy41u35AqJUrI-H83DObUDq&si=MOMj3ejqe3CRpWYf": "PHP Track"
+                    };
 
-    fetch(`http://localhost:5000/get-progress/${CURRENT_USER_ID}`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.length > 0){
-                progressCourse.value = data[0].course_name;
-                progressValue.value = data[0].progress ;
-                updateProgressBtn.disabled = false;
-            }
-        })
-        .catch(err => console.error("Error fetching progress:", err));
+                    data.forEach(course => {
+                        const name = trackNames[course.course_name] || course.course_name;
+                        const li = document.createElement('li');
+                        li.style.display = 'flex';
+                        li.style.justifyContent = 'space-between';
+                        li.style.alignItems = 'center';
+                        li.style.padding = '8px 0';
+                        
+                        if(course.progress >= 100) {
+                            li.innerHTML = `<span><i class="fas fa-check-circle" style="color: #4CAF50; margin-right: 10px;"></i> ${name}</span> <span style="font-weight: bold; color: #4CAF50;">Completed</span>`;
+                            completedList.appendChild(li);
+                            hasCompleted = true;
+                        } else {
+                            li.innerHTML = `<span><i class="fas fa-clock" style="color: var(--gd); margin-right: 10px;"></i> ${name}</span> <span style="font-weight: bold;">${course.progress}%</span>`;
+                            inProgressList.appendChild(li);
+                            hasInProgress = true;
+                        }
+                    });
 
+                    if(!hasInProgress) inProgressList.innerHTML = '<li>No courses in progress yet.</li>';
+                    if(!hasCompleted) completedList.innerHTML = '<li>No completed courses yet.</li>';
+                }
+            })
+            .catch(err => console.error("Error fetching progress:", err));
+    }
 });
 </script>
 
