@@ -231,12 +231,15 @@ h1,h2{
 <!-- RIGHT SIDE -->
 <div>
     <div class="card">
-        <h3>Course Progress</h3>
-        <input type="text" id="progressCourse" placeholder="Course name" disabled>
-        <input type="number" id="progressValue" placeholder="Progress %" min="0" max="100" disabled>
-
-        <button onclick="updateProgress()" id="updateProgressBtn" disabled>Update Progress</button>
-        <ul id="progressList"></ul>
+        <h3>Courses In Progress</h3>
+        <ul id="in-progress-list" style="margin-bottom: 2rem;">
+            <li>No courses in progress yet.</li>
+        </ul>
+        
+        <h3>Completed Courses</h3>
+        <ul id="completed-courses-list">
+            <li>No completed courses yet.</li>
+        </ul>
     </div>
 
     <div class="card" style="margin-top:24px; text-align:center;">
@@ -338,21 +341,6 @@ function addNote(){
     }
 }
 
-function updateProgress(){
-    if(!editMode) return;
-    let course = document.getElementById('progressCourse').value;
-    let value = document.getElementById('progressValue').value;
-    if(course.trim() !== '' && value !== ''){
-        let li = document.createElement('li');
-        li.textContent = `${course}: ${value}%`;
-        li.onclick = () => { li.remove(); saveProgress(); };
-        progressList.appendChild(li);
-        document.getElementById('progressCourse').value = '';
-        document.getElementById('progressValue').value = '';
-        saveProgress();
-    }
-}
-
 function changeProfile(event){
     if(!editMode) return;
     const reader = new FileReader();
@@ -426,14 +414,6 @@ function loadSavedData(){
         li.onclick = () => { li.remove(); saveNotes(); };
         notesList.appendChild(li);
     });
-
-    let savedProgress = JSON.parse(localStorage.getItem('userProgress')) || [];
-    savedProgress.forEach(p => {
-        let li = document.createElement('li');
-        li.textContent = p;
-        li.onclick = () => { li.remove(); saveProgress(); };
-        progressList.appendChild(li);
-    });
 }
 
 // --- Save helper functions ---
@@ -444,10 +424,6 @@ function saveCourses(){
 function saveNotes(){
     let arr = Array.from(notesList.querySelectorAll('li')).map(li => li.textContent);
     localStorage.setItem('userNotes', JSON.stringify(arr));
-}
-function saveProgress(){
-    let arr = Array.from(progressList.querySelectorAll('li')).map(li => li.textContent);
-    localStorage.setItem('userProgress', JSON.stringify(arr));
 }
 
 // --- Initialize ---
@@ -465,24 +441,48 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Get user from storage
     const storedUser = JSON.parse(localStorage.getItem('user'));
     
-    // 2. Check if user and user_id exist
     if(storedUser && storedUser.user_id) {
         const CURRENT_USER_ID = storedUser.user_id;
-
-        const progressCourse = document.getElementById('progressCourse');
-        const progressValue = document.getElementById('progressValue');
-        const updateProgressBtn = document.getElementById('updateProgressBtn');
+        const inProgressList = document.getElementById('in-progress-list');
+        const completedList = document.getElementById('completed-courses-list');
 
         fetch(`${API_BASE_URL}/get-progress/${CURRENT_USER_ID}`)
             .then(res => res.json())
             .then(data => {
                 if(data && data.length > 0){
-                    progressCourse.value = data[0].course_name;
-                    progressValue.value = data[0].progress ;
-                    updateProgressBtn.disabled = false;
+                    inProgressList.innerHTML = '';
+                    completedList.innerHTML = '';
+
+                    let hasInProgress = false;
+                    let hasCompleted = false;
+
+                    const trackNames = {
+                        "PLDoPjvoNmBAx3kiplQR_oeDqLDBUDYwVv": "HTML Track"
+                    };
+
+                    data.forEach(course => {
+                        const name = trackNames[course.course_name] || course.course_name;
+                        const li = document.createElement('li');
+                        li.style.display = 'flex';
+                        li.style.justifyContent = 'space-between';
+                        li.style.alignItems = 'center';
+                        li.style.padding = '8px 0';
+                        
+                        if(course.progress >= 100) {
+                            li.innerHTML = `<span><i class="fas fa-check-circle" style="color: #4CAF50; margin-right: 10px;"></i> ${name}</span> <span style="font-weight: bold; color: #4CAF50;">Completed</span>`;
+                            completedList.appendChild(li);
+                            hasCompleted = true;
+                        } else {
+                            li.innerHTML = `<span><i class="fas fa-clock" style="color: var(--gd); margin-right: 10px;"></i> ${name}</span> <span style="font-weight: bold;">${course.progress}%</span>`;
+                            inProgressList.appendChild(li);
+                            hasInProgress = true;
+                        }
+                    });
+
+                    if(!hasInProgress) inProgressList.innerHTML = '<li>No courses in progress yet.</li>';
+                    if(!hasCompleted) completedList.innerHTML = '<li>No completed courses yet.</li>';
                 }
             })
             .catch(err => console.error("Error fetching progress:", err));
