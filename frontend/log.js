@@ -76,11 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 name: loginData.name,
                                 email: loginData.email,
                                 role: loginData.role || 'student',
-                                profile_image: "user.jpg",
-                                age: 20,
-                                year: "Year",
-                                major: "Computer",
-                                college: "College"
+                                profile_image: loginData.profile_image || "user.jpg",
+                                age: loginData.age || 20,
+                                year: loginData.year || "Year",
+                                major: loginData.major || "Computer",
+                                college: loginData.college || "College"
                             }));
                             
                             showMessage("Login successful!");
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         name: data.name,
                         email: data.email,
                         role: data.role || 'student',
-                        profile_image: "user.jpg",
+                        profile_image: data.profile_image || "user.jpg",
                         age: data.age || 20,
                         year: data.year || "Year",
                         major: data.major || "Computer",
