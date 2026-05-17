@@ -110,3 +110,15 @@ def get_playlist_progress(user_id, playlist_id):
 @token_required
 def check_video_access(playlist_id):
     return jsonify({"has_access": True, "user_id": request.current_user['user_id']}), 200
+
+@api_bp.route('/contact', methods=['POST'])
+def contact():
+    data = request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    message = data.get('message')
+    
+    # In a real app, you might save this to a DB or send an email
+    current_app.logger.info(f"Contact form submission from {name} ({email}): {message}")
+    
+    return jsonify({"message": "Thank you for contacting us! We will get back to you soon."}), 200
