@@ -102,9 +102,9 @@ def execute_query(query, params=(), fetch_one=False, fetch_all=False):
             conn.close()
 
 def get_user_by_identity(identity):
-    """Get user by username or email"""
+    """Get user by username or email (case-insensitive)"""
     return execute_query(
-        "SELECT user_id, name, email, password, role, profile_image, age, year, major, college FROM Users WHERE (name=%s OR email=%s)",
+        "SELECT user_id, name, email, password, role, profile_image, age, year, major, college FROM Users WHERE LOWER(name)=LOWER(%s) OR LOWER(email)=LOWER(%s)",
         (identity, identity),
         fetch_one=True
     )
@@ -159,7 +159,7 @@ def register():
         if not all([username, email, password]):
             return jsonify({"message": "Missing required fields"}), 400
 
-        existing = execute_query("SELECT * FROM Users WHERE email=%s", (email,), fetch_one=True)
+        existing = execute_query("SELECT * FROM Users WHERE LOWER(email)=LOWER(%s)", (email,), fetch_one=True)
         if existing:
             return jsonify({"message": "Email already exists"}), 400
 
@@ -186,7 +186,26 @@ def login():
 
         user = get_user_by_identity(username)
 
-        if user and check_password_hash(user['password'], password):
+        if not user:
+            return jsonify({"message": "Invalid username or password"}), 401
+
+        # Check password (supports migration from plain-text)
+        password_correct = False
+        db_password = user['password']
+
+        # 1. Try secure hash check
+        if db_password.startswith('pbkdf2:sha256') or db_password.startswith('scrypt:'):
+            if check_password_hash(db_password, password):
+                password_correct = True
+        # 2. Fallback to plain-text (and migrate)
+        elif db_password == password:
+            password_correct = True
+            # Upgrade user to secure hash automatically
+            new_hash = generate_password_hash(password)
+            execute_query("UPDATE Users SET password=%s WHERE user_id=%s", (new_hash, user['user_id']))
+            logger.info(f"✅ User {user['user_id']} migrated to secure password hash.")
+
+        if password_correct:
             token_data = {
                 'user_id': user['user_id'],
                 'name': user['name'],
