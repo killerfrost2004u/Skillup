@@ -1,4 +1,4 @@
-# SkillUp Backend: Architectural & Design Patterns Guide
+# SkillUp Backend: Architectural, Patterns & Testing Guide
 
 This document explains the professional software engineering principles applied to the SkillUp backend. Use this as a reference for studying and maintaining the system.
 
@@ -33,44 +33,82 @@ We moved from a single "God Object" (`app.py`) to a **4-Layered Architecture**. 
 
 ## 2. Integrated Design Patterns
 
-### A. Singleton Pattern (`Backend/data/db.py`)
-*   **Applied to:** `DatabaseManager` class.
+### A. Singleton Pattern (Creational)
+*   **Where:** `DatabaseManager` in `Backend/data/db.py`
 *   **How:** Uses `__new__` to ensure only **one instance** of the manager exists in the entire app.
-*   **Why:** Creating database connection pools is expensive. Singleton ensures we reuse one manager and one configuration centrally.
+*   **Why:** Creating database connection pools is expensive. Singleton ensures we reuse one manager and one configuration centrally across the application.
 
-### B. Factory & Adapter Patterns (`Backend/data/db.py`)
-*   **Applied to:** `DatabaseAdapter` and its children (`SQLiteAdapter`, `PostgresAdapter`).
-*   **How:** The `DatabaseManager` acts as a **Factory** that creates the correct adapter based on the environment (Local vs. Production).
-*   **Why:** SQLite and Postgres use different syntax (e.g., `?` vs `%s`). The **Adapter Pattern** "translates" these differences so the rest of your code can use a single, unified method: `execute_query`.
+### B. Adapter Pattern (Structural)
+*   **Where:** `DatabaseAdapter`, `SQLiteAdapter`, `PostgresAdapter` in `Backend/data/db.py`
+*   **How:** The `DatabaseManager` acts as a Factory that creates the correct adapter based on the environment.
+*   **Why:** SQLite and Postgres use different syntax (e.g., `?` vs `%s`). The Adapter Pattern "translates" these differences so the rest of your code can use a single, unified method: `execute_query`.
 
-### C. Repository Pattern (`Backend/data/repository.py`)
-*   **Applied to:** `UserRepository`, `CourseRepository`.
-*   **How:** Instead of services calling the database directly, they call methods like `user_repo.get_by_id()`.
-*   **Why:** It creates a "buffer" between your data source and your logic. This makes it possible to mock the data during unit testing.
+### C. Dependency Injection (Structural)
+*   **Where:** `UserRepository`, `AuthService`, and `app.py` (The Composition Root).
+*   **How:** Instead of classes creating their own dependencies (e.g., a repository importing a global DB instance), dependencies are passed into their `__init__` methods.
+*   **Why:** Prevents tight coupling. Because `AuthService` takes a `user_repo` parameter, we can easily pass a *fake* repository during testing.
 
-### D. Dependency Injection (`Backend/app.py` & `services/`)
-*   **Applied to:** Service constructors.
-*   **How:** In `app.py`, we instantiate the `user_repo` and "inject" it into the `AuthService` constructor.
-*   **Why:** It prevents tight coupling. The `AuthService` doesn't *create* its own repository; it is *given* one. This is the gold standard for testability.
-
-### E. Observer Pattern (`Backend/services/course_service.py`)
-*   **Applied to:** Progress tracking.
+### D. Observer Pattern (Behavioral)
+*   **Where:** `CourseService` and `CompletionLogger` in `Backend/services/course_service.py`.
 *   **How:** `CourseService` maintains a list of "Observers." When progress is saved, it "notifies" them.
-*   **Why:** Decoupling side-effects. For example, the `CompletionLogger` is an observer. If you later want to add an "Email Notification" feature, you just create a new Observer class and add it in `app.py`. You don't have to change the `save_progress` function itself!
+*   **Why:** Decouples side-effects. The `CompletionLogger` is an observer. If you later want to add an "Email Notification" feature upon course completion, you just create a new Observer class and add it in `app.py`. You don't have to change the `save_progress` function itself!
+
+### E. Strategy Pattern (Behavioral)
+*   **Where:** `ChatStrategy`, `OpenAIStrategy`, `OllamaStrategy`, and `AIChatService` in `Backend/services/course_service.py`.
+*   **How:** We define a common interface (`ChatStrategy`). The specific AI provider (OpenAI vs. local Ollama) is chosen in `app.py` and passed to `AIChatService`.
+*   **Why:** Adheres to the **Open/Closed Principle**. If you want to add Anthropic or Gemini later, you just create a new `GeminiStrategy` class. You do *not* have to modify `AIChatService`.
 
 ---
 
-## Summary Table
+## 3. Unit Testing & Validation Strategy
 
-| File | Pattern/Layer | Why? |
-| :--- | :--- | :--- |
-| `app.py` | **Composition Root** | Where all objects are created and wired together (Dependency Injection). |
-| `api/routes.py` | **API Layer** | Keeps the HTTP logic separate from the "Brain." |
-| `services/auth_service.py` | **Service Layer** | Pure business logic; doesn't know about databases or HTTP. |
-| `data/db.py` | **Adapter + Singleton** | Unifies different database drivers into one simple interface. |
-| `data/repository.py` | **Repository Layer** | Centralizes SQL so queries aren't scattered everywhere. |
+The project utilizes the `unittest` framework (located in `Backend/tests/`) to ensure reliability. The tests strictly follow three core principles:
+
+### A. Isolation (Mocking)
+Tests must isolate the exact unit of work. When testing the `AuthService`, we do not want to connect to a real database, because a database failure would cause the service test to fail, hiding the true source of the bug.
+*   **How:** We use `unittest.mock.Mock()`.
+```python
+# In test_auth_service.py
+def setUp(self):
+    self.mock_user_repo = Mock() # A fake database
+    self.auth_service = AuthService(self.mock_user_repo) # Inject the fake
+```
+
+### B. Verification (Happy Paths)
+Verification answers the question: *"Does the code run without crashing when given correct input?"*
+*   **How:** We assert that methods return the expected success codes and call the underlying functions correctly.
+```python
+def test_register_user_success(self):
+    # Setup the fake DB to return "None" (meaning email is available)
+    self.mock_user_repo.get_by_email.return_value = None
+    
+    result = self.auth_service.register_user("test", "test@test.com", "pass")
+    
+    # Verify the code succeeded
+    self.assertEqual(result["status"], 201)
+    # Verify the service actually told the DB to save the user
+    self.mock_user_repo.create.assert_called_once()
+```
+
+### C. Validation (Business Rules)
+Validation answers the question: *"Does the software meet the actual business requirements and stop bad behavior?"*
+*   **How:** We deliberately give the system bad data and assert that it correctly blocks the action.
+```python
+def test_register_user_existing_email(self):
+    # Validation: Ensure duplicate emails are blocked.
+    # Setup fake DB to pretend the email exists
+    self.mock_user_repo.get_by_email.return_value = {"email": "test@test.com"}
+
+    result = self.auth_service.register_user("test", "test@test.com", "pass")
+    
+    # Assert the system stopped the user
+    self.assertEqual(result["status"], 400)
+    # CRITICAL: Assert the database create method was NEVER called.
+    self.mock_user_repo.create.assert_not_called()
+```
 
 ---
-
-### Study Tip:
-Look at `Backend/services/course_service.py`. Notice how it defines a `ProgressObserver` class? This is an **Interface**. Any class that follows this "contract" can be plugged into the system. This is the **Open/Closed Principle**: The system is *open* for extension (new observers) but *closed* for modification (you don't change the service logic).
+**To run the test suite:**
+```bash
+python -m unittest discover Backend/tests
+```
