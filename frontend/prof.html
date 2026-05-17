@@ -187,16 +187,17 @@ h1,h2{
         <input type="file" id="uploadInput" style="display:none" accept="image/*" onchange="changeProfile(event)">
     </div>
     <div style="flex:1; min-width: 50px;">
-        <h2 id="studentName" contenteditable="false"></h2>
-            <p id="profile-email">user@example.com</p>
+        <h2 id="studentName" contenteditable="false">Loading...</h2>
+            <p id="profile-email">email@example.com</p>
        <div class="card student-card">
         <div class="student-info">
-            <p><strong>Age:</strong> <input type="number" id="ageInput" value="20" disabled></p>
-            <p><strong>Year:</strong> <input type="text" id="yearInput" value="Year" disabled></p>
-            <p><strong>Major:</strong> <input type="text" id="majorInput" value="Computer " disabled></p>
-            <p><strong>University:</strong> <input type="text" id="univInput" value=" College" disabled></p>
+            <p><strong>Age:</strong> <input type="number" id="ageInput" value="" placeholder="Age" disabled></p>
+            <p><strong>Year:</strong> <input type="text" id="yearInput" value="" placeholder="Academic Year" disabled></p>
+            <p><strong>Major:</strong> <input type="text" id="majorInput" value="" placeholder="Major" disabled></p>
+            <p><strong>University:</strong> <input type="text" id="univInput" value="" placeholder="University/College" disabled></p>
         </div>
         </div>
+        <button class="edit-btn" onclick="window.location.href='index.html'">Home</button>
         <button class="edit-btn" id="editBtn" onclick="toggleEdit()">Edit YOUR INFO</button>
         <button class="edit-btn" id="logout-btn">Logout</button>
 
@@ -240,15 +241,15 @@ h1,h2{
 
     <div class="card" style="margin-top:24px; text-align:center;">
         <h3>Rank </h3>
-        <h1>#07 </h1>
-        <p>Top Student This Month</p>
+        <h1 id="userRank">-- </h1>
+        <p id="rankTitle">Loading rank...</p>
     </div>
 
     <div class="card" style="margin-top:24px;">
         <h3>Achievements</h3>
-        <p>🏆 1500 Points</p>
-        <p>📘 40 Lessons Completed</p>
-        <p>⏳ 120 Learning Hours</p>
+        <p id="achPoints">🏆 -- Points</p>
+        <p id="achLessons">📘 -- Lessons Completed</p>
+        <p id="achHours">⏳ -- Learning Hours</p>
     </div>
 </div>
 
@@ -268,17 +269,35 @@ let userData = JSON.parse(localStorage.getItem('user')) || {
     age: 20,
     year: 'Year',
     major: 'Computer',
-    college: 'College'
+    college: 'College',
+    rank: '#07',
+    rank_title: 'Top Student This Month',
+    points: 1500,
+    lessons: 40,
+    hours: 120
 };
 
-document.getElementById('studentName').textContent = userData.name;
-document.getElementById('profile-email').textContent = userData.email;
-profilePic.src = userData.profile_image;
+// Function to populate page with user data
+function populateUserData() {
+    document.getElementById('studentName').textContent = userData.name;
+    document.getElementById('profile-email').textContent = userData.email;
+    profilePic.src = userData.profile_image || 'user.jpg';
 
-document.getElementById('ageInput').value = userData.age;
-document.getElementById('yearInput').value = userData.year;
-document.getElementById('majorInput').value = userData.major;
-document.getElementById('univInput').value = userData.college;
+    document.getElementById('ageInput').value = userData.age || '';
+    document.getElementById('yearInput').value = userData.year || '';
+    document.getElementById('majorInput').value = userData.major || '';
+    document.getElementById('univInput').value = userData.college || '';
+
+    // Update Rank and Achievements dynamically
+    document.getElementById('userRank').textContent = userData.rank || '--';
+    document.getElementById('rankTitle').textContent = userData.rank_title || 'Loading...';
+    document.getElementById('achPoints').innerHTML = `🏆 ${userData.points || 0} Points`;
+    document.getElementById('achLessons').innerHTML = `📘 ${userData.lessons || 0} Lessons Completed`;
+    document.getElementById('achHours').innerHTML = `⏳ ${userData.hours || 0} Learning Hours`;
+}
+
+// Initial populate
+populateUserData();
 
 // --- Courses list ---
 const courses = ['HTML', 'CSS', 'JAVA SCRIPT', 'Python BASICS', 'GUI','NODE JS','PHP','TESTING','FULL STACK'];
@@ -349,38 +368,36 @@ function toggleEdit() {
     editMode = !editMode;
     const editableElements = document.querySelectorAll('[contenteditable], input, textarea, button');
     editableElements.forEach(el => {
-        if(el.id !== 'editBtn') el.disabled = !editMode;
+        if(el.id !== 'editBtn' && el.className !== 'edit-btn') {
+             if(el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.disabled = !editMode;
+        }
         if(el.hasAttribute('contenteditable')) el.contentEditable = editMode;
     });
     document.getElementById('editBtn').textContent = editMode ? 'Done' : 'Edit YOUR INFO';
 
     if(!editMode){
-        // جمع البيانات وحفظها
-        const updatedData = {
+        // Merge with existing data to preserve fields like user_id, rank, etc.
+        userData = {
+            ...userData,
             name: document.getElementById('studentName').textContent,
             email: document.getElementById('profile-email').textContent,
             profile_image: profilePic.src,
-            age: parseInt(document.getElementById('ageInput').value),
+            age: parseInt(document.getElementById('ageInput').value) || 0,
             year: document.getElementById('yearInput').value,
             major: document.getElementById('majorInput').value,
             college: document.getElementById('univInput').value,
-
         };
-
-        const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5000' : '';
 
         fetch(`${API_BASE_URL}/update-profile`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedData)
+            body: JSON.stringify(userData)
         })
         .then(res => res.json())
         .then(data => {
             alert(data.message);
-            localStorage.setItem('user', JSON.stringify(updatedData));
-
-            // مهم: إعادة تعيين editMode بعد الحفظ
-            editMode = false;
+            localStorage.setItem('user', JSON.stringify(userData));
+            populateUserData(); // Refresh UI
         })
         .catch(err => console.log("Error updating profile:", err));
     }
@@ -388,9 +405,8 @@ function toggleEdit() {
 
 // --- Save data to localStorage ---
 function saveUserData(key, value){
-    let user = JSON.parse(localStorage.getItem('user')) || {};
-    user[key] = value;
-    localStorage.setItem('user', JSON.stringify(user));
+    userData[key] = value;
+    localStorage.setItem('user', JSON.stringify(userData));
 }
 
 // --- Load saved courses, notes, and progress ---
@@ -459,8 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressCourse = document.getElementById('progressCourse');
         const progressValue = document.getElementById('progressValue');
         const updateProgressBtn = document.getElementById('updateProgressBtn');
-
-        const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5000' : '';
 
         fetch(`${API_BASE_URL}/get-progress/${CURRENT_USER_ID}`)
             .then(res => res.json())

@@ -6,6 +6,7 @@ from psycopg2.extras import RealDictCursor
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from datetime import datetime, timedelta
 import requests
@@ -100,11 +101,11 @@ def execute_query(query, params=(), fetch_one=False, fetch_all=False):
         if conn:
             conn.close()
 
-def get_user_by_credentials(username, password):
-    """Get user by username and password"""
+def get_user_by_identity(identity):
+    """Get user by username or email"""
     return execute_query(
-        "SELECT user_id, name, email, role, profile_image, age, year, major, college FROM Users WHERE (name=%s OR email=%s) AND password=%s",
-        (username, username, password),
+        "SELECT user_id, name, email, password, role, profile_image, age, year, major, college FROM Users WHERE (name=%s OR email=%s)",
+        (identity, identity),
         fetch_one=True
     )
 
@@ -162,9 +163,10 @@ def register():
         if existing:
             return jsonify({"message": "Email already exists"}), 400
 
+        hashed_password = generate_password_hash(password)
         success = execute_query(
             "INSERT INTO Users (name, email, password, role) VALUES (%s, %s, %s, %s)",
-            (username, email, password, role)
+            (username, email, hashed_password, role)
         )
 
         if success:
@@ -182,9 +184,9 @@ def login():
         username = data.get("username")
         password = data.get("password")
 
-        user = get_user_by_credentials(username, password)
+        user = get_user_by_identity(username)
 
-        if user:
+        if user and check_password_hash(user['password'], password):
             token_data = {
                 'user_id': user['user_id'],
                 'name': user['name'],
