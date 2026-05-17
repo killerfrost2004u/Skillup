@@ -8,7 +8,7 @@ CREATE TABLE Users (
     user_id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(100) NOT NULL,
     email NVARCHAR(150) UNIQUE NOT NULL,
-    password NVARCHAR(100) NOT NULL,
+    password NVARCHAR(255) NOT NULL,
     role NVARCHAR(50) CHECK (role IN ('student', 'instructor', 'admin')) NOT NULL,
     profile_image NVARCHAR(MAX) NULL,
     age INT NULL,
