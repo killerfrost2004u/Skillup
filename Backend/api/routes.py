@@ -1,8 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from functools import wraps
-from ..services.auth_service import AuthService
-from ..services.course_service import CourseService, AIChatService
-from ..data.repository import UserRepository
 import os
 
 api_bp = Blueprint('api', __name__)
@@ -21,7 +18,7 @@ def token_required(f):
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
         
-        user = AuthService.validate_token(token)
+        user = current_app.auth_service.validate_token(token)
         if not user:
             return jsonify({'message': 'Invalid or expired token!'}), 401
         
@@ -32,7 +29,7 @@ def token_required(f):
 @api_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    result = AuthService.register_user(
+    result = current_app.auth_service.register_user(
         data.get("username"), 
         data.get("email"), 
         data.get("password"),
@@ -45,7 +42,7 @@ def register():
 @api_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    result = AuthService.login_user(data.get("username"), data.get("password"))
+    result = current_app.auth_service.login_user(data.get("username"), data.get("password"))
     if "error" in result:
         return jsonify({"message": result["error"]}), result["status"]
     return jsonify(result["data"]), result["status"]
@@ -61,7 +58,7 @@ def check_auth():
     if not token:
         return jsonify({'authenticated': False}), 200
     
-    user = AuthService.validate_token(token)
+    user = current_app.auth_service.validate_token(token)
     if user:
         return jsonify({'authenticated': True, 'user': user}), 200
     return jsonify({'authenticated': False}), 200
@@ -69,8 +66,7 @@ def check_auth():
 @api_bp.route('/update-profile', methods=['POST'])
 def update_profile():
     data = request.get_json()
-    # Using email as unique identifier for updates as per current frontend
-    success = UserRepository.update_profile_by_email(
+    success = current_app.user_repo.update_profile_by_email(
         data.get('email'),
         data.get('name'),
         data.get('profile_image'),
@@ -89,26 +85,26 @@ def chat():
         return jsonify({'reply': 'Chat available in local environment only.', 'error': 'Restricted'}), 403
     
     data = request.get_json()
-    reply = AIChatService.get_reply(data.get('message', ''))
+    reply = current_app.ai_service.get_reply(data.get('message', ''))
     return jsonify({'reply': reply})
 
 @api_bp.route('/courses', methods=['GET'])
 def get_courses():
-    return jsonify(CourseService.get_all_courses()), 200
+    return jsonify(current_app.course_service.get_all_courses()), 200
 
 @api_bp.route('/get-progress/<int:user_id>', methods=['GET'])
 def get_progress(user_id):
-    return jsonify(CourseService.get_user_progress(user_id)), 200
+    return jsonify(current_app.course_service.get_user_progress(user_id)), 200
 
 @api_bp.route('/api/progress/save', methods=['POST'])
 def save_progress():
     data = request.get_json()
-    result = CourseService.save_progress(data.get('user_id'), data)
+    result = current_app.course_service.save_progress(data.get('user_id'), data)
     return jsonify(result), 200
 
 @api_bp.route('/api/progress/<int:user_id>/<string:playlist_id>', methods=['GET'])
 def get_playlist_progress(user_id, playlist_id):
-    return jsonify(CourseService.get_playlist_progress(user_id, playlist_id)), 200
+    return jsonify(current_app.course_service.get_playlist_progress(user_id, playlist_id)), 200
 
 @api_bp.route('/api/check-video-access/<string:playlist_id>', methods=['GET'])
 @token_required

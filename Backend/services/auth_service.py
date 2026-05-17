@@ -2,52 +2,51 @@ import os
 import jwt
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from ..data.repository import UserRepository
 
 JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRY_HOURS = 24
 
+# ============================================
+# 4. DEPENDENCY INJECTION (Service Layer)
+# ============================================
 class AuthService:
-    @staticmethod
-    def register_user(username, email, password, role="student"):
-        existing = UserRepository.get_by_email(email)
+    def __init__(self, user_repo):
+        self.user_repo = user_repo
+
+    def register_user(self, username, email, password, role="student"):
+        existing = self.user_repo.get_by_email(email)
         if existing:
             return {"error": "Email already exists", "status": 400}
 
         hashed_password = generate_password_hash(password)
-        success = UserRepository.create(username, email, hashed_password, role)
+        success = self.user_repo.create(username, email, hashed_password, role)
         
         if success:
             return {"message": "Registration successful", "status": 201}
         return {"error": "Failed to register user", "status": 500}
 
-    @staticmethod
-    def login_user(identity, password):
-        user = UserRepository.get_by_identity(identity)
+    def login_user(self, identity, password):
+        user = self.user_repo.get_by_identity(identity)
         if not user:
             return {"error": "Invalid username or password", "status": 401}
 
         password_correct = False
         db_password = user['password']
 
-        # 1. Try secure hash check
         if db_password.startswith(('pbkdf2:sha256', 'scrypt:')):
             if check_password_hash(db_password, password):
                 password_correct = True
-        # 2. Fallback to plain-text (and migrate)
         elif db_password == password:
             password_correct = True
-            # Upgrade user to secure hash automatically
             new_hash = generate_password_hash(password)
-            UserRepository.update_password(user['user_id'], new_hash)
+            self.user_repo.update_password(user['user_id'], new_hash)
 
         if not password_correct:
             return {"error": "Invalid username or password", "status": 401}
 
-        token = AuthService._generate_token(user)
+        token = self._generate_token(user)
         
-        # Prepare user profile for response
         profile = {
             "user_id": user["user_id"],
             "name": user["name"],
@@ -63,17 +62,15 @@ class AuthService:
         }
         return {"data": profile, "status": 200}
 
-    @staticmethod
-    def validate_token(token):
+    def validate_token(self, token):
         try:
             data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            user = UserRepository.get_by_id(data['user_id'])
+            user = self.user_repo.get_by_id(data['user_id'])
             return user
         except:
             return None
 
-    @staticmethod
-    def _generate_token(user):
+    def _generate_token(self, user):
         token_data = {
             'user_id': user['user_id'],
             'name': user['name'],
