@@ -199,6 +199,7 @@ if (loginBtn) {
 
 
 // In your login JS file  ======================================
+UserStore.login({name:"Dina", email:"test@gmail.com"});
 document.getElementById("loginForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
