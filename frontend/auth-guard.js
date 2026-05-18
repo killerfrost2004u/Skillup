@@ -97,7 +97,7 @@ function handleLogout() {
 
 
 
-// auth-guard.js ==========================================================
+/* auth-guard.js ==========================================================
 function updateNavbar() {
     const userStore = UserStore.getInstance();
     const user = userStore.getUser();
@@ -115,4 +115,4 @@ function updateNavbar() {
 }
 
 // Run when page loads
-document.addEventListener('DOMContentLoaded', updateNavbar);
+document.addEventListener('DOMContentLoaded', updateNavbar);*/

@@ -195,33 +195,29 @@ if (loginBtn) {
 
 
 
+/*
 
-
-
-// In your login JS file  ======================================
-UserStore.login({name:"Dina", email:"test@gmail.com"});
+ UserStore.login({name:"Dina", email:"test@gmail.com"});
 document.getElementById("loginForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    // Get values from form
     const email = document.getElementById("email").value;
     const name = document.getElementById("name") ? document.getElementById("name").value : email.split("@")[0];
 
     const user = {
-        id: Date.now(),           // simple ID
+        id: Date.now(),         
         name: name,
         email: email,
-        // add more fields if needed
     };
 
-    // Use the Singleton
     const userStore = UserStore.getInstance();
     userStore.login(user);
 
     showMessage("Login successful! Welcome to Skill Up 🎉");
     
-    // Redirect to home
+    
     setTimeout(() => {
         window.location.href = "index.html";   // or prof.html
     }, 1500);
 });
+*/

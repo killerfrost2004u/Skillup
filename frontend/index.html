@@ -787,7 +787,7 @@ chatInput.addEventListener("keypress", (e) => {
 <!--message box style and contact section-->
 <!--ahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh-->
 
-<script src="userStore.js"></script>
+<!--<script src="userStore.js"></script>-->
 
 <script>
 let messageBox = document.createElement('div');
@@ -837,7 +837,44 @@ document.querySelector(".contact_form_submit").addEventListener("click", functio
         console.error(err);
         showMessage("Failed to send message. Try again."); 
     });
+});    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    UserStore.setUser({
+        name: "Dina",
+        email: "dina@gmail.com"
+    });
+
+    const user = UserStore.getUser();
+
+    console.log("USER IN HOME:", user);
+
 });
+
+
+
+
+
 </script>
 <!--endddd-->
 

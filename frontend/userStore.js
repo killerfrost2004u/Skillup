@@ -1,25 +1,14 @@
 const UserStore = (function () {
 
-    let currentUser = null;
-
-    function load() {
-        const saved = localStorage.getItem("skillup_user");
-        if (saved) {
-            currentUser = JSON.parse(saved);
-        }
-    }
-
-    load();
+    let user = null;
 
     return {
-        login: function (user) {
-            currentUser = user;
-            localStorage.setItem("skillup_user", JSON.stringify(user));
-            console.log("USER SAVED ✔", user);
+        setUser: function (data) {
+            user = data;
         },
 
         getUser: function () {
-            return currentUser;
+            return user;
         }
     };
 
