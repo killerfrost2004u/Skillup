@@ -197,25 +197,42 @@ dotlottie-wc {
 
 
 
-.home-hero { padding-top: 120px; /* تحت الهيدر */
-    position: relative;
-width: 100vw;
+.home-hero {
+  padding-top: 120px;
+  position: relative;
+
+  width: 100vw;
   height: 100vh;
- 
+
   display: flex;
   justify-content: center;
   align-items: center;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-image: url('2.jpeg');
-   z-index: 1;
-background-position: top center;
-  background-size: 100% 100%;
 
+  overflow: hidden; /* مهم */
 }
 
+/* الصورة فقط */
+.home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
 
+  background-image: url("2.jpeg");
+  background-position: top center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+
+  filter: blur(1.9px);
+  transform: scale(1.05);
+
+  z-index: 0;
+}
+
+/* المحتوى */
+.home-hero > * {
+  position: relative;
+  z-index: 1;
+}
  .hero-content {
   position: relative;
   z-index: 2; /* فوق الفيديو */
@@ -1154,18 +1171,39 @@ background-position: top center;
   background: var(--bu);
   flex-wrap: wrap;
 }
-
-
 .track {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: url("123.jpg");
-  background-size: contain;
-  background-position: center;
-  margin:  60px; 
- border-radius: 50px;
+  margin: 60px;
+  border-radius: 50px;
+
+  position: relative;
+  overflow: hidden;
 }
+
+/* الصورة + البلور فقط */
+.track::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: url("123.jpg");
+  background-size: cover;
+  background-position: center;
+
+  filter: blur(3px);
+  transform: scale(1);
+
+  z-index: 0;
+}
+
+/* المحتوى فوق الصورة */
+.track > * {
+  position: relative;
+  z-index: 1;
+}
+
 .track .btn {
   display: inline-block;
   padding: 1rem 2rem;
