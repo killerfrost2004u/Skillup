@@ -24,7 +24,28 @@ body {
   cursor: url("pointer (4).png") 16 16, auto;
 
 }
-
+.home-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bu);
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+.home-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
 @keyframes gradientMove {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -174,9 +195,17 @@ h1,h2{
 }
 </style>
 </head>
-<body>
+
 
 <!-- PROFILE HEADER -->
+ 
+ 
+    <div class="background-overlay"></div>
+
+    <a href="index.html" id="home-btn" class="home-btn" title="Go to Home"
+      ><i class="fas fa-home"></i
+    ></a>
+    
 <div class="card" style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
     <div style="position: relative;">
         <img src="profile.jpg" class="profile-pic" id="profilePic" onclick="if(editMode) document.getElementById('uploadInput').click()">
