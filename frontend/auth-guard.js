@@ -73,4 +73,46 @@ function handleLogout() {
     localStorage.removeItem('userNotes');
     localStorage.removeItem('userProgress');
     window.location.href = "log.html?show=register";
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// auth-guard.js ==========================================================
+function updateNavbar() {
+    const userStore = UserStore.getInstance();
+    const user = userStore.getUser();
+
+    const profileLink = document.querySelector('a[href="prof.html"]');
+    const loginLink = document.querySelector('a[href="log.html"]');
+
+    if (user) {
+        console.log("👤 Logged in as:", user.name);
+        if (profileLink) profileLink.textContent = user.name.split(" ")[0];
+        // Hide login link if you have one
+    } else {
+        console.log("❌ No user logged in");
+    }
 }
+
+// Run when page loads
+document.addEventListener('DOMContentLoaded', updateNavbar);
